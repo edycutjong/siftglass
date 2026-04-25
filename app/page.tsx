@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Network, Bot, Zap, Crosshair, Package, Lock, Key, UserMinus } from 'lucide-react';
 
 /* ── Animated scanning line ── */
 function ScanLine() {
@@ -94,10 +95,10 @@ function ParticleField() {
 }
 
 /* ── Feature card ── */
-function FeatureCard({ icon, title, desc }: { icon: string; title: string; desc: string }) {
+function FeatureCard({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
   return (
     <div className="group glass-panel p-6 hover:border-cyan-500/30 transition-all duration-500 hover:shadow-[0_0_40px_rgba(6,182,212,0.1)] hover:-translate-y-1">
-      <div className="text-3xl mb-4 group-hover:scale-110 transition-transform duration-300">{icon}</div>
+      <div className="text-cyan-400 mb-4 group-hover:scale-110 transition-transform duration-300">{icon}</div>
       <h3 className="text-lg font-bold text-white mb-2 font-mono tracking-wide">{title}</h3>
       <p className="text-sm text-zinc-400 leading-relaxed">{desc}</p>
     </div>
@@ -214,22 +215,22 @@ export default function LandingPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <FeatureCard
-            icon="🕸️"
+            icon={<Network size={32} strokeWidth={1.5} />}
             title="Attack Graph"
             desc="Interactive React Flow visualization maps attack chains across IPs, hashes, files, domains, and processes in real time."
           />
           <FeatureCard
-            icon="🤖"
+            icon={<Bot size={32} strokeWidth={1.5} />}
             title="AI Agent"
             desc="Autonomous OpenClaw-powered agent investigates alerts, queries VirusTotal, AbuseIPDB, and correlates across data sources."
           />
           <FeatureCard
-            icon="⚡"
+            icon={<Zap size={32} strokeWidth={1.5} />}
             title="Real-Time"
             desc="Live Supabase Realtime subscriptions push investigation updates instantly — no polling, no refresh needed."
           />
           <FeatureCard
-            icon="💥"
+            icon={<Crosshair size={32} strokeWidth={1.5} />}
             title="Kill Chains"
             desc="Agent reconstructs complete attack narratives — from initial access through lateral movement to data exfiltration."
           />
@@ -247,13 +248,13 @@ export default function LandingPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[
-            { icon: '📦', name: 'Supply-Chain Attack', desc: 'Malicious npm package drops reverse shell, exfiltrates data to C2 server via TLS.' },
-            { icon: '🔐', name: 'Ransomware Outbreak', desc: 'LockBit variant encrypts hospital network, spreads via SMB exploitation.' },
-            { icon: '🔑', name: 'Credential Stuffing', desc: 'Botnet uses leaked credentials to breach corporate SSO and pivot internally.' },
-            { icon: '🕵️', name: 'Insider Threat', desc: 'Privileged engineer exfiltrates source code via encrypted USB and Tor network.' },
+            { icon: <Package size={32} strokeWidth={1.5} />, name: 'Supply-Chain Attack', desc: 'Malicious npm package drops reverse shell, exfiltrates data to C2 server via TLS.' },
+            { icon: <Lock size={32} strokeWidth={1.5} />, name: 'Ransomware Outbreak', desc: 'LockBit variant encrypts hospital network, spreads via SMB exploitation.' },
+            { icon: <Key size={32} strokeWidth={1.5} />, name: 'Credential Stuffing', desc: 'Botnet uses leaked credentials to breach corporate SSO and pivot internally.' },
+            { icon: <UserMinus size={32} strokeWidth={1.5} />, name: 'Insider Threat', desc: 'Privileged engineer exfiltrates source code via encrypted USB and Tor network.' },
           ].map((s) => (
             <div key={s.name} className="glass-panel p-6 flex items-start gap-4 hover:border-cyan-500/20 transition-all duration-300 group">
-              <span className="text-3xl flex-shrink-0 group-hover:scale-110 transition-transform">{s.icon}</span>
+              <span className="text-cyan-400 flex-shrink-0 group-hover:scale-110 transition-transform">{s.icon}</span>
               <div>
                 <h3 className="text-base font-bold text-white font-mono tracking-wide mb-1">{s.name}</h3>
                 <p className="text-sm text-zinc-400 leading-relaxed">{s.desc}</p>

@@ -50,8 +50,6 @@ graph TD
     class WebBoundary boundary
 ```
 
-> **Note on Platform Compatibility**: For details on how SIFT.Glass integrates natively with the SANS SIFT Workstation for the Find Evil 2026 Hackathon, please read the [SIFT Integration Guide](SIFT_INTEGRATION.md).
-
 ---
 
 ## Local Setup
