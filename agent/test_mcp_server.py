@@ -2,6 +2,14 @@ import pytest
 import asyncio
 import uuid
 import mcp_server
+from unittest.mock import MagicMock, patch
+
+@pytest.fixture(autouse=True)
+def mock_supabase():
+    with patch('mcp_server.get_supabase') as mock_get_supabase:
+        mock_client = MagicMock()
+        mock_get_supabase.return_value = mock_client
+        yield mock_client
 
 @pytest.mark.asyncio
 async def test_set_session():
