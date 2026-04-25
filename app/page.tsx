@@ -1,0 +1,356 @@
+'use client';
+
+import { useState, useCallback, useEffect, useRef } from 'react';
+import {
+  ReactFlow,
+  MiniMap,
+  Controls,
+  Background,
+  BackgroundVariant,
+  useNodesState,
+  useEdgesState,
+  type Node,
+  type Edge,
+  type NodeTypes,
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+
+import InvestigationNodeComponent from '@/components/soc/InvestigationNode';
+import AgentBanner from '@/components/soc/AgentBanner';
+import TerminalPanel from '@/components/soc/TerminalPanel';
+import { DEMO_NODES, DEMO_EDGES, DEMO_AGENT_STATE, DEMO_TERMINAL } from '@/lib/demo-data';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import type { AgentState, TerminalLine } from '@/lib/types';
+
+const nodeTypes: NodeTypes = {
+  investigation: InvestigationNodeComponent,
+};
+
+function dbNodeToFlow(row: Record<string, unknown>): Node {
+  return {
+    id: row.id as string,
+    type: 'investigation',
+    position: { x: (row.position_x as number) ?? 0, y: (row.position_y as number) ?? 0 },
+    data: {
+      label: row.label,
+      nodeType: row.type,
+      status: row.status,
+      confidence: row.confidence,
+      details: row.details,
+    },
+  };
+}
+
+function dbEdgeToFlow(row: Record<string, unknown>): Edge {
+  const isShattered = false; // shattered edges are deleted from DB, not updated
+  return {
+    id: row.id as string,
+    source: row.source as string,
+    target: row.target as string,
+    label: row.label as string | undefined,
+    animated: (row.animated as boolean) ?? false,
+    style: {
+      stroke: isShattered ? '#475569' : '#06b6d4',
+      strokeWidth: 2,
+    },
+    labelStyle: {
+      fill: '#94a3b8',
+      fontSize: 10,
+      fontFamily: 'JetBrains Mono, monospace',
+    },
+    labelBgStyle: {
+      fill: '#09090b',
+      fillOpacity: 0.8,
+    },
+  };
+}
+
+function demoNodesToFlow(): Node[] {
+  const NODE_POSITIONS: Record<string, { x: number; y: number }> = {
+    'node-1': { x: 50, y: 200 },
+    'node-2': { x: 300, y: 200 },
+    'node-3': { x: 550, y: 50 },
+    'node-4': { x: 550, y: 350 },
+    'node-5': { x: 550, y: 200 },
+    'node-6': { x: 50, y: 400 },
+    'node-7': { x: 300, y: 400 },
+  };
+  return DEMO_NODES.map((n) => ({
+    id: n.id,
+    type: 'investigation',
+    position: NODE_POSITIONS[n.id] || { x: 0, y: 0 },
+    data: {
+      label: n.label,
+      nodeType: n.type,
+      status: n.status,
+      confidence: n.confidence,
+      details: n.details,
+    },
+  }));
+}
+
+function demoEdgesToFlow(): Edge[] {
+  return DEMO_EDGES.map((e) => ({
+    id: e.id,
+    source: e.source,
+    target: e.target,
+    label: e.label,
+    animated: e.animated,
+    style: {
+      stroke: e.source === 'node-2' && e.target === 'node-3' ? '#475569' : '#06b6d4',
+      strokeWidth: 2,
+    },
+    labelStyle: { fill: '#94a3b8', fontSize: 10, fontFamily: 'JetBrains Mono, monospace' },
+    labelBgStyle: { fill: '#09090b', fillOpacity: 0.8 },
+  }));
+}
+
+export default function DashboardPage() {
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>(demoNodesToFlow());
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(demoEdgesToFlow());
+  const [agentState, setAgentState] = useState<AgentState>(DEMO_AGENT_STATE);
+  const [terminalLines, setTerminalLines] = useState<TerminalLine[]>(DEMO_TERMINAL);
+  const [isLive, setIsLive] = useState(false);
+  const sessionRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+
+    // Determine session: prefer ?session= query param, then latest from agent_state
+    const params = new URLSearchParams(window.location.search);
+    const sessionParam = params.get('session');
+
+    async function bootstrap(sessionId: string) {
+      sessionRef.current = sessionId;
+
+      // Load initial state from DB
+      const [nodesRes, edgesRes, stateRes, terminalRes] = await Promise.all([
+        supabase.from('investigation_nodes').select('*').eq('session_id', sessionId).order('created_at'),
+        supabase.from('investigation_edges').select('*').eq('session_id', sessionId).order('created_at'),
+        supabase.from('agent_state').select('*').eq('session_id', sessionId).single(),
+        supabase.from('terminal_lines').select('*').eq('session_id', sessionId).order('created_at'),
+      ]);
+
+      if (nodesRes.data && nodesRes.data.length > 0) {
+        setNodes(nodesRes.data.map(dbNodeToFlow));
+        setIsLive(true);
+      }
+      if (edgesRes.data) setEdges(edgesRes.data.map(dbEdgeToFlow));
+      if (stateRes.data) {
+        setAgentState({
+          objective: stateRes.data.objective,
+          reasoning: stateRes.data.reasoning,
+          confidence: stateRes.data.confidence,
+          currentTool: stateRes.data.current_tool,
+          phase: stateRes.data.phase,
+        });
+      }
+      if (terminalRes.data && terminalRes.data.length > 0) {
+        setTerminalLines(
+          terminalRes.data.map((r: Record<string, unknown>) => ({
+            id: r.id as string,
+            timestamp: new Date(r.created_at as string).getTime(),
+            type: r.type as TerminalLine['type'],
+            content: r.content as string,
+          }))
+        );
+      }
+    }
+
+    async function init() {
+      if (sessionParam) {
+        await bootstrap(sessionParam);
+      } else {
+        // Find the most recent session
+        const { data } = await supabase
+          .from('agent_state')
+          .select('session_id')
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .single();
+        if (data) await bootstrap(data.session_id);
+      }
+    }
+
+    init();
+
+    // Realtime subscriptions
+    const channel = supabase
+      .channel('siftglass-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'investigation_nodes' }, (payload) => {
+        const sid = sessionRef.current;
+        if (!sid) return;
+        const row = (payload.new ?? {}) as Record<string, unknown>;
+        if (row.session_id !== sid) return;
+
+        if (payload.eventType === 'INSERT') {
+          setNodes((prev) => [...prev.filter((n) => n.id !== row.id), dbNodeToFlow(row)]);
+          setIsLive(true);
+        } else if (payload.eventType === 'UPDATE') {
+          setNodes((prev) =>
+            prev.map((n) => (n.id === row.id ? { ...n, data: { ...n.data, status: row.status, confidence: row.confidence, details: row.details } } : n))
+          );
+        } else if (payload.eventType === 'DELETE') {
+          const deleted = payload.old as Record<string, unknown>;
+          setNodes((prev) => prev.filter((n) => n.id !== deleted.id));
+        }
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'investigation_edges' }, (payload) => {
+        const sid = sessionRef.current;
+        if (!sid) return;
+        if (payload.eventType === 'INSERT') {
+          const row = payload.new as Record<string, unknown>;
+          if (row.session_id !== sid) return;
+          setEdges((prev) => [...prev.filter((e) => e.id !== row.id), dbEdgeToFlow(row)]);
+        } else if (payload.eventType === 'DELETE') {
+          const deleted = payload.old as Record<string, unknown>;
+          setEdges((prev) => prev.filter((e) => e.id !== deleted.id));
+        }
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'agent_state' }, (payload) => {
+        const sid = sessionRef.current;
+        if (!sid) return;
+        const row = payload.new as Record<string, unknown>;
+        if (row.session_id !== sid) return;
+        setAgentState({
+          objective: row.objective as string,
+          reasoning: row.reasoning as string,
+          confidence: row.confidence as number,
+          currentTool: row.current_tool as string | null,
+          phase: row.phase as AgentState['phase'],
+        });
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'terminal_lines' }, (payload) => {
+        const sid = sessionRef.current;
+        if (!sid) return;
+        const row = payload.new as Record<string, unknown>;
+        if (row.session_id !== sid) return;
+        setTerminalLines((prev) => [
+          ...prev,
+          {
+            id: row.id as string,
+            timestamp: new Date(row.created_at as string).getTime(),
+            type: row.type as TerminalLine['type'],
+            content: row.content as string,
+          },
+        ]);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [setNodes, setEdges]);
+
+  const onNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
+    console.log('Node clicked:', node);
+  }, []);
+
+  return (
+    <div className="flex flex-col h-screen">
+      <header
+        className="flex-shrink-0 border-b border-cyan-500/10 px-5 py-3 flex items-center justify-between relative overflow-hidden"
+        style={{ background: 'linear-gradient(135deg, rgba(9,9,11,0.98) 0%, rgba(6,182,212,0.03) 100%)' }}
+      >
+        {/* Subtle scanline overlay */}
+        <div className="absolute inset-0 opacity-[0.015] pointer-events-none" style={{
+          backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(6,182,212,0.5) 2px, rgba(6,182,212,0.5) 3px)',
+        }} />
+
+        <div className="flex items-center gap-4 relative z-10">
+          <div
+            className="w-9 h-9 rounded-lg flex items-center justify-center text-lg"
+            style={{
+              background: 'linear-gradient(135deg, rgba(6,182,212,0.15) 0%, rgba(6,182,212,0.05) 100%)',
+              border: '1px solid rgba(6,182,212,0.2)',
+              boxShadow: '0 0 20px rgba(6,182,212,0.1)',
+            }}
+          >
+            🔬
+          </div>
+          <h1 className="text-xl font-extrabold tracking-tight">
+            <span className="text-white" style={{ textShadow: '0 0 30px rgba(255,255,255,0.1)' }}>SIFT</span>
+            <span className="text-cyan-400" style={{ textShadow: '0 0 20px rgba(6,182,212,0.5), 0 0 40px rgba(6,182,212,0.2)' }}>.Glass</span>
+          </h1>
+          <span
+            className="soc-badge text-[10px] font-mono font-semibold tracking-wider px-3 py-1 rounded-full uppercase"
+            style={{
+              background: 'linear-gradient(135deg, rgba(6,182,212,0.12) 0%, rgba(168,85,247,0.08) 100%)',
+              border: '1px solid rgba(6,182,212,0.25)',
+              color: '#67e8f9',
+              textShadow: '0 0 10px rgba(6,182,212,0.3)',
+            }}
+          >
+            v0.1.0 — FIND EVIL!
+          </span>
+        </div>
+        <div className="flex items-center gap-4 relative z-10">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full" style={{
+            background: isLive ? 'rgba(34,197,94,0.08)' : 'rgba(255,255,255,0.03)',
+            border: `1px solid ${isLive ? 'rgba(34,197,94,0.2)' : 'rgba(255,255,255,0.06)'}`,
+          }}>
+            <div
+              className={`w-2 h-2 rounded-full ${isLive ? 'bg-green-400' : 'bg-zinc-600'}`}
+              style={isLive ? { boxShadow: '0 0 8px rgba(34,197,94,0.6), 0 0 16px rgba(34,197,94,0.3)' } : {}}
+            />
+            <span className={`text-[10px] font-mono font-semibold tracking-wider ${isLive ? 'text-green-300' : 'text-zinc-500'}`}>
+              {isLive ? 'AGENT LIVE' : 'DEMO MODE'}
+            </span>
+          </div>
+          <a
+            href="https://github.com/edycutjong/siftglass"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-zinc-400 hover:text-cyan-400 transition-colors font-mono px-3 py-1.5 rounded-lg hover:bg-cyan-400/5 border border-transparent hover:border-cyan-400/20"
+          >
+            GitHub →
+          </a>
+        </div>
+      </header>
+
+      <div className="flex-shrink-0 px-4 py-2">
+        <AgentBanner state={agentState} />
+      </div>
+
+      <div className="flex-1 flex gap-3 px-4 pb-4 min-h-0">
+        <div className="flex-[7] glass-panel overflow-hidden">
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            nodeTypes={nodeTypes}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onNodeClick={onNodeClick}
+            fitView
+            fitViewOptions={{ padding: 0.3 }}
+            minZoom={0.3}
+            maxZoom={2}
+            proOptions={{ hideAttribution: true }}
+          >
+            <Background
+              variant={BackgroundVariant.Dots}
+              gap={20}
+              size={1}
+              color="rgba(255,255,255,0.03)"
+            />
+            <Controls />
+            <MiniMap
+              nodeColor={(node) => {
+                const status = (node.data as Record<string, unknown>)?.status as string;
+                if (status === 'malicious') return '#ef4444';
+                if (status === 'investigating') return '#06b6d4';
+                if (status === 'shattered') return '#475569';
+                return '#22c55e';
+              }}
+              maskColor="rgba(9,9,11,0.8)"
+            />
+          </ReactFlow>
+        </div>
+
+        <div className="flex-[3] min-w-0">
+          <TerminalPanel lines={terminalLines} />
+        </div>
+      </div>
+    </div>
+  );
+}

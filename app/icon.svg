@@ -1,0 +1,114 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradients -->
+    <linearGradient id="cyanRed" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#ef4444"/>
+    </linearGradient>
+    <linearGradient id="cyanFade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#0891b2" stop-opacity="0.4"/>
+    </linearGradient>
+    <radialGradient id="lensGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="alertGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ef4444" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#ef4444" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Shattered Glass Clip -->
+    <clipPath id="lensClip">
+      <circle cx="220" cy="220" r="120"/>
+    </clipPath>
+
+    <!-- Outer Glow Filter -->
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="12"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" fill="#020617"/>
+
+  <!-- Subtle grid texture -->
+  <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+    <path d="M32 0V32M0 32H32" stroke="#0f172a" stroke-width="0.5" fill="none"/>
+  </pattern>
+  <rect width="512" height="512" fill="url(#grid)"/>
+
+  <!-- Ambient glow behind the lens -->
+  <circle cx="220" cy="220" r="180" fill="url(#lensGlow)"/>
+
+  <!-- === MAGNIFYING GLASS === -->
+  <g filter="url(#glow)">
+    <!-- Lens outer ring -->
+    <circle cx="220" cy="220" r="130" fill="none" stroke="url(#cyanRed)" stroke-width="10" opacity="0.3"/>
+    <circle cx="220" cy="220" r="120" fill="none" stroke="url(#cyanRed)" stroke-width="6"/>
+
+    <!-- Lens inner fill — translucent glass -->
+    <circle cx="220" cy="220" r="118" fill="#020617" fill-opacity="0.5"/>
+
+    <!-- Shattered glass cracks inside lens -->
+    <g clip-path="url(#lensClip)" opacity="0.6">
+      <!-- Major fracture lines radiating from center-right (the "impact point") -->
+      <line x1="260" y1="200" x2="340" y2="140" stroke="#06b6d4" stroke-width="2"/>
+      <line x1="260" y1="200" x2="320" y2="280" stroke="#06b6d4" stroke-width="1.5"/>
+      <line x1="260" y1="200" x2="180" y2="130" stroke="#06b6d4" stroke-width="1.5"/>
+      <line x1="260" y1="200" x2="140" y2="240" stroke="#06b6d4" stroke-width="1"/>
+      <line x1="260" y1="200" x2="200" y2="330" stroke="#06b6d4" stroke-width="1"/>
+      <line x1="260" y1="200" x2="310" y2="200" stroke="#06b6d4" stroke-width="2"/>
+      <!-- Secondary fractures -->
+      <line x1="200" y1="170" x2="160" y2="180" stroke="#0891b2" stroke-width="0.8"/>
+      <line x1="230" y1="250" x2="190" y2="300" stroke="#0891b2" stroke-width="0.8"/>
+      <line x1="280" y1="230" x2="300" y2="260" stroke="#0891b2" stroke-width="0.8"/>
+    </g>
+
+    <!-- === ATTACK GRAPH NODES visible through the glass === -->
+    <g clip-path="url(#lensClip)">
+      <!-- Graph edges (connections) -->
+      <line x1="200" y1="180" x2="260" y2="210" stroke="#06b6d4" stroke-width="1.5" opacity="0.5"/>
+      <line x1="260" y1="210" x2="240" y2="270" stroke="#06b6d4" stroke-width="1.5" opacity="0.5"/>
+      <line x1="260" y1="210" x2="170" y2="260" stroke="#06b6d4" stroke-width="1.5" opacity="0.4"/>
+      <line x1="200" y1="180" x2="150" y2="190" stroke="#06b6d4" stroke-width="1" opacity="0.3"/>
+
+      <!-- Benign nodes (cyan) -->
+      <circle cx="200" cy="180" r="8" fill="#06b6d4" opacity="0.8"/>
+      <circle cx="170" cy="260" r="6" fill="#06b6d4" opacity="0.6"/>
+      <circle cx="150" cy="190" r="5" fill="#06b6d4" opacity="0.4"/>
+      <circle cx="240" cy="270" r="6" fill="#06b6d4" opacity="0.6"/>
+
+      <!-- THREAT NODE (red — the "evil" the glass found) -->
+      <circle cx="260" cy="210" r="12" fill="url(#alertGlow)" />
+      <circle cx="260" cy="210" r="10" fill="none" stroke="#ef4444" stroke-width="2.5"/>
+      <circle cx="260" cy="210" r="4" fill="#ef4444"/>
+    </g>
+
+    <!-- Lens highlight / reflection -->
+    <ellipse cx="185" cy="175" rx="50" ry="30" fill="white" opacity="0.04" transform="rotate(-20 185 175)"/>
+
+    <!-- Handle -->
+    <line x1="310" y1="310" x2="430" y2="430" stroke="url(#cyanRed)" stroke-width="18" stroke-linecap="round"/>
+    <line x1="310" y1="310" x2="430" y2="430" stroke="#020617" stroke-width="8" stroke-linecap="round"/>
+  </g>
+
+  <!-- === HUD / TECH DECORATIONS === -->
+  <!-- Corner brackets (top-left) -->
+  <path d="M30 60 L30 30 L60 30" fill="none" stroke="#06b6d4" stroke-width="2" opacity="0.4"/>
+  <!-- Corner brackets (bottom-right) -->
+  <path d="M452 482 L482 482 L482 452" fill="none" stroke="#ef4444" stroke-width="2" opacity="0.4"/>
+
+  <!-- Scanning lines -->
+  <line x1="50" y1="400" x2="120" y2="400" stroke="#06b6d4" stroke-width="1" opacity="0.2"/>
+  <line x1="50" y1="410" x2="90" y2="410" stroke="#06b6d4" stroke-width="1" opacity="0.15"/>
+  <line x1="400" y1="60" x2="470" y2="60" stroke="#ef4444" stroke-width="1" opacity="0.15"/>
+
+  <!-- Data points -->
+  <circle cx="60" cy="420" r="2" fill="#06b6d4" opacity="0.3"/>
+  <circle cx="470" cy="50" r="2" fill="#ef4444" opacity="0.3"/>
+</svg>
