@@ -19,18 +19,18 @@ SIFT.Glass makes AI threat-hunting **visible and auditable**. As the OpenClaw ag
 ```mermaid
 graph TD
     %% Define security boundaries
-    subgraph "Trust Boundary: Local SIFT Workstation (Secure Enclave)"
+    subgraph SIFTBoundary ["Trust Boundary: Local SIFT Workstation (Secure Enclave)"]
         Agent["OpenClaw IR Agent (Python)"]
         SIEM["Local SIEM / Logs"]
         Tools["Forensic Tools (Plaso, Volatility)"]
     end
 
-    subgraph "Trust Boundary: State Management"
+    subgraph StateBoundary ["Trust Boundary: State Management"]
         MCP["MCP Server"]
         Supabase["Supabase (PostgreSQL + Realtime)"]
     end
 
-    subgraph "Trust Boundary: Visualization (Web)"
+    subgraph WebBoundary ["Trust Boundary: Visualization (Web)"]
         NextJS["Next.js App Router Dashboard"]
         ReactFlow["React Flow Visualization"]
     end
@@ -45,9 +45,9 @@ graph TD
     
     %% Styling
     classDef boundary fill:transparent,stroke:#06b6d4,stroke-width:2px,stroke-dasharray: 5 5
-    class "Trust Boundary: Local SIFT Workstation (Secure Enclave)" boundary
-    class "Trust Boundary: State Management" boundary
-    class "Trust Boundary: Visualization (Web)" boundary
+    class SIFTBoundary boundary
+    class StateBoundary boundary
+    class WebBoundary boundary
 ```
 
 > **Note on Platform Compatibility**: For details on how SIFT.Glass integrates natively with the SANS SIFT Workstation for the Find Evil 2026 Hackathon, please read the [SIFT Integration Guide](SIFT_INTEGRATION.md).

@@ -26,7 +26,7 @@ const nodeTypes: NodeTypes = {
   investigation: InvestigationNodeComponent,
 };
 
-function dbNodeToFlow(row: Record<string, unknown>): Node {
+export function dbNodeToFlow(row: Record<string, unknown>): Node {
   return {
     id: row.id as string,
     type: 'investigation',
@@ -41,7 +41,7 @@ function dbNodeToFlow(row: Record<string, unknown>): Node {
   };
 }
 
-function dbEdgeToFlow(row: Record<string, unknown>): Edge {
+export function dbEdgeToFlow(row: Record<string, unknown>): Edge {
   const isShattered = false; // shattered edges are deleted from DB, not updated
   return {
     id: row.id as string,
@@ -65,7 +65,7 @@ function dbEdgeToFlow(row: Record<string, unknown>): Edge {
   };
 }
 
-function demoNodesToFlow(): Node[] {
+export function demoNodesToFlow(): Node[] {
   const NODE_POSITIONS: Record<string, { x: number; y: number }> = {
     'node-1': { x: 50, y: 200 },
     'node-2': { x: 300, y: 200 },
@@ -89,7 +89,7 @@ function demoNodesToFlow(): Node[] {
   }));
 }
 
-function demoEdgesToFlow(): Edge[] {
+export function demoEdgesToFlow(): Edge[] {
   return DEMO_EDGES.map((e) => ({
     id: e.id,
     source: e.source,
