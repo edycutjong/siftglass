@@ -1,334 +1,317 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
-import {
-  ReactFlow,
-  MiniMap,
-  Controls,
-  Background,
-  BackgroundVariant,
-  useNodesState,
-  useEdgesState,
-  type Node,
-  type Edge,
-  type NodeTypes,
-} from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
+import { useEffect, useRef } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
 
-import InvestigationNodeComponent from '@/components/soc/InvestigationNode';
-import AgentBanner from '@/components/soc/AgentBanner';
-import TerminalPanel from '@/components/soc/TerminalPanel';
-import { DEMO_NODES, DEMO_EDGES, DEMO_AGENT_STATE, DEMO_TERMINAL } from '@/lib/demo-data';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
-import type { AgentState, TerminalLine } from '@/lib/types';
-
-const nodeTypes: NodeTypes = {
-  investigation: InvestigationNodeComponent,
-};
-
-export function dbNodeToFlow(row: Record<string, unknown>): Node {
-  return {
-    id: row.id as string,
-    type: 'investigation',
-    position: { x: (row.position_x as number) ?? 0, y: (row.position_y as number) ?? 0 },
-    data: {
-      label: row.label,
-      nodeType: row.type,
-      status: row.status,
-      confidence: row.confidence,
-      details: row.details,
-    },
-  };
+/* ── Animated scanning line ── */
+function ScanLine() {
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+      <div
+        className="absolute left-0 right-0 h-[2px] opacity-20"
+        style={{
+          background: 'linear-gradient(90deg, transparent 0%, #06b6d4 30%, #06b6d4 70%, transparent 100%)',
+          animation: 'scanDown 4s ease-in-out infinite',
+        }}
+      />
+    </div>
+  );
 }
 
-export function dbEdgeToFlow(row: Record<string, unknown>): Edge {
-  const isShattered = false; // shattered edges are deleted from DB, not updated
-  return {
-    id: row.id as string,
-    source: row.source as string,
-    target: row.target as string,
-    label: row.label as string | undefined,
-    animated: (row.animated as boolean) ?? false,
-    style: {
-      stroke: isShattered ? '#475569' : '#06b6d4',
-      strokeWidth: 2,
-    },
-    labelStyle: {
-      fill: '#94a3b8',
-      fontSize: 10,
-      fontFamily: 'JetBrains Mono, monospace',
-    },
-    labelBgStyle: {
-      fill: '#09090b',
-      fillOpacity: 0.8,
-    },
-  };
-}
-
-export function demoNodesToFlow(): Node[] {
-  const NODE_POSITIONS: Record<string, { x: number; y: number }> = {
-    'node-1': { x: 50, y: 200 },
-    'node-2': { x: 300, y: 200 },
-    'node-3': { x: 550, y: 50 },
-    'node-4': { x: 550, y: 350 },
-    'node-5': { x: 550, y: 200 },
-    'node-6': { x: 50, y: 400 },
-    'node-7': { x: 300, y: 400 },
-  };
-  return DEMO_NODES.map((n) => ({
-    id: n.id,
-    type: 'investigation',
-    position: NODE_POSITIONS[n.id] || { x: 0, y: 0 },
-    data: {
-      label: n.label,
-      nodeType: n.type,
-      status: n.status,
-      confidence: n.confidence,
-      details: n.details,
-    },
-  }));
-}
-
-export function demoEdgesToFlow(): Edge[] {
-  return DEMO_EDGES.map((e) => ({
-    id: e.id,
-    source: e.source,
-    target: e.target,
-    label: e.label,
-    animated: e.animated,
-    style: {
-      stroke: e.source === 'node-2' && e.target === 'node-3' ? '#475569' : '#06b6d4',
-      strokeWidth: 2,
-    },
-    labelStyle: { fill: '#94a3b8', fontSize: 10, fontFamily: 'JetBrains Mono, monospace' },
-    labelBgStyle: { fill: '#09090b', fillOpacity: 0.8 },
-  }));
-}
-
-export default function DashboardPage() {
-  const [nodes, setNodes, onNodesChange] = useNodesState<Node>(demoNodesToFlow());
-  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(demoEdgesToFlow());
-  const [agentState, setAgentState] = useState<AgentState>(DEMO_AGENT_STATE);
-  const [terminalLines, setTerminalLines] = useState<TerminalLine[]>(DEMO_TERMINAL);
-  const [isLive, setIsLive] = useState(false);
-  const sessionRef = useRef<string | null>(null);
+/* ── Floating particle field ── */
+function ParticleField() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    if (!isSupabaseConfigured) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-    // Determine session: prefer ?session= query param, then latest from agent_state
-    const params = new URLSearchParams(window.location.search);
-    const sessionParam = params.get('session');
+    let animId: number;
+    const particles: { x: number; y: number; vx: number; vy: number; r: number; o: number }[] = [];
 
-    async function bootstrap(sessionId: string) {
-      sessionRef.current = sessionId;
+    function resize() {
+      canvas!.width = window.innerWidth;
+      canvas!.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
 
-      // Load initial state from DB
-      const [nodesRes, edgesRes, stateRes, terminalRes] = await Promise.all([
-        supabase.from('investigation_nodes').select('*').eq('session_id', sessionId).order('created_at'),
-        supabase.from('investigation_edges').select('*').eq('session_id', sessionId).order('created_at'),
-        supabase.from('agent_state').select('*').eq('session_id', sessionId).single(),
-        supabase.from('terminal_lines').select('*').eq('session_id', sessionId).order('created_at'),
-      ]);
-
-      if (nodesRes.data && nodesRes.data.length > 0) {
-        setNodes(nodesRes.data.map(dbNodeToFlow));
-        setIsLive(true);
-      }
-      if (edgesRes.data) setEdges(edgesRes.data.map(dbEdgeToFlow));
-      if (stateRes.data) {
-        setAgentState({
-          objective: stateRes.data.objective,
-          reasoning: stateRes.data.reasoning,
-          confidence: stateRes.data.confidence,
-          currentTool: stateRes.data.current_tool,
-          phase: stateRes.data.phase,
-        });
-      }
-      if (terminalRes.data && terminalRes.data.length > 0) {
-        setTerminalLines(
-          terminalRes.data.map((r: Record<string, unknown>) => ({
-            id: r.id as string,
-            timestamp: new Date(r.created_at as string).getTime(),
-            type: r.type as TerminalLine['type'],
-            content: r.content as string,
-          }))
-        );
-      }
+    for (let i = 0; i < 60; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
+        r: Math.random() * 1.5 + 0.5,
+        o: Math.random() * 0.4 + 0.1,
+      });
     }
 
-    async function init() {
-      if (sessionParam) {
-        await bootstrap(sessionParam);
-      } else {
-        // Find the most recent session
-        const { data } = await supabase
-          .from('agent_state')
-          .select('session_id')
-          .order('updated_at', { ascending: false })
-          .limit(1)
-          .single();
-        if (data) await bootstrap(data.session_id);
+    function draw() {
+      ctx!.clearRect(0, 0, canvas!.width, canvas!.height);
+      for (const p of particles) {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0) p.x = canvas!.width;
+        if (p.x > canvas!.width) p.x = 0;
+        if (p.y < 0) p.y = canvas!.height;
+        if (p.y > canvas!.height) p.y = 0;
+        ctx!.beginPath();
+        ctx!.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx!.fillStyle = `rgba(6, 182, 212, ${p.o})`;
+        ctx!.fill();
       }
+      // Draw connections
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 120) {
+            ctx!.beginPath();
+            ctx!.moveTo(particles[i].x, particles[i].y);
+            ctx!.lineTo(particles[j].x, particles[j].y);
+            ctx!.strokeStyle = `rgba(6, 182, 212, ${0.06 * (1 - dist / 120)})`;
+            ctx!.lineWidth = 0.5;
+            ctx!.stroke();
+          }
+        }
+      }
+      animId = requestAnimationFrame(draw);
     }
-
-    init();
-
-    // Realtime subscriptions
-    const channel = supabase
-      .channel('siftglass-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'investigation_nodes' }, (payload) => {
-        const sid = sessionRef.current;
-        if (!sid) return;
-        const row = (payload.new ?? {}) as Record<string, unknown>;
-        if (row.session_id !== sid) return;
-
-        if (payload.eventType === 'INSERT') {
-          setNodes((prev) => [...prev.filter((n) => n.id !== row.id), dbNodeToFlow(row)]);
-          setIsLive(true);
-        } else if (payload.eventType === 'UPDATE') {
-          setNodes((prev) =>
-            prev.map((n) => (n.id === row.id ? { ...n, data: { ...n.data, status: row.status, confidence: row.confidence, details: row.details } } : n))
-          );
-        } else if (payload.eventType === 'DELETE') {
-          const deleted = payload.old as Record<string, unknown>;
-          setNodes((prev) => prev.filter((n) => n.id !== deleted.id));
-        }
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'investigation_edges' }, (payload) => {
-        const sid = sessionRef.current;
-        if (!sid) return;
-        if (payload.eventType === 'INSERT') {
-          const row = payload.new as Record<string, unknown>;
-          if (row.session_id !== sid) return;
-          setEdges((prev) => [...prev.filter((e) => e.id !== row.id), dbEdgeToFlow(row)]);
-        } else if (payload.eventType === 'DELETE') {
-          const deleted = payload.old as Record<string, unknown>;
-          setEdges((prev) => prev.filter((e) => e.id !== deleted.id));
-        }
-      })
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'agent_state' }, (payload) => {
-        const sid = sessionRef.current;
-        if (!sid) return;
-        const row = payload.new as Record<string, unknown>;
-        if (row.session_id !== sid) return;
-        setAgentState({
-          objective: row.objective as string,
-          reasoning: row.reasoning as string,
-          confidence: row.confidence as number,
-          currentTool: row.current_tool as string | null,
-          phase: row.phase as AgentState['phase'],
-        });
-      })
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'terminal_lines' }, (payload) => {
-        const sid = sessionRef.current;
-        if (!sid) return;
-        const row = payload.new as Record<string, unknown>;
-        if (row.session_id !== sid) return;
-        setTerminalLines((prev) => [
-          ...prev,
-          {
-            id: row.id as string,
-            timestamp: new Date(row.created_at as string).getTime(),
-            type: row.type as TerminalLine['type'],
-            content: row.content as string,
-          },
-        ]);
-      })
-      .subscribe();
+    draw();
 
     return () => {
-      supabase.removeChannel(channel);
+      cancelAnimationFrame(animId);
+      window.removeEventListener('resize', resize);
     };
-  }, [setNodes, setEdges]);
-
-  const onNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
-    console.log('Node clicked:', node);
   }, []);
 
+  return <canvas ref={canvasRef} className="absolute inset-0 z-0 pointer-events-none" />;
+}
+
+/* ── Feature card ── */
+function FeatureCard({ icon, title, desc }: { icon: string; title: string; desc: string }) {
   return (
-    <div className="flex flex-col h-screen bg-[#030712]">
-      <header
-        className="flex-shrink-0 border-b border-cyan-500/20 px-6 py-4 flex items-center justify-between relative overflow-hidden bg-cyan-950/10 shadow-[0_4px_30px_rgba(6,182,212,0.05)]"
-      >
-        {/* Subtle scanline overlay */}
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{
-          backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(6,182,212,1) 2px, rgba(6,182,212,1) 3px)',
-        }} />
+    <div className="group glass-panel p-6 hover:border-cyan-500/30 transition-all duration-500 hover:shadow-[0_0_40px_rgba(6,182,212,0.1)] hover:-translate-y-1">
+      <div className="text-3xl mb-4 group-hover:scale-110 transition-transform duration-300">{icon}</div>
+      <h3 className="text-lg font-bold text-white mb-2 font-mono tracking-wide">{title}</h3>
+      <p className="text-sm text-zinc-400 leading-relaxed">{desc}</p>
+    </div>
+  );
+}
 
-        <div className="flex items-center gap-5 relative z-10">
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-[0_0_20px_rgba(6,182,212,0.2)] border border-cyan-500/30 bg-cyan-500/10"
-          >
-            <span style={{ filter: 'drop-shadow(0 0 8px rgba(6,182,212,0.8))' }}>🔬</span>
+/* ── Stat counter ── */
+function Stat({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="text-center">
+      <div className="text-3xl md:text-4xl font-extrabold text-cyan-400 font-mono" style={{ textShadow: '0 0 20px rgba(6,182,212,0.5)' }}>
+        {value}
+      </div>
+      <div className="text-xs text-zinc-500 font-mono tracking-widest uppercase mt-1">{label}</div>
+    </div>
+  );
+}
+
+/* ── Tech badge ── */
+function TechBadge({ name }: { name: string }) {
+  return (
+    <span className="px-3 py-1.5 rounded-full border border-cyan-500/20 bg-cyan-950/30 text-cyan-300 text-[11px] font-mono font-bold tracking-wider hover:bg-cyan-900/40 hover:border-cyan-400/40 transition-all duration-300">
+      {name}
+    </span>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════════════ */
+export default function LandingPage() {
+  return (
+    <div className="relative min-h-screen bg-[#030712]">
+      <ParticleField />
+
+      {/* ── HERO SECTION ── */}
+      <section className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 text-center">
+        <ScanLine />
+
+        {/* Corner HUD brackets */}
+        <div className="absolute top-8 left-8 w-12 h-12 border-l-2 border-t-2 border-cyan-500/30" />
+        <div className="absolute top-8 right-8 w-12 h-12 border-r-2 border-t-2 border-cyan-500/30" />
+        <div className="absolute bottom-8 left-8 w-12 h-12 border-l-2 border-b-2 border-red-500/30" />
+        <div className="absolute bottom-8 right-8 w-12 h-12 border-r-2 border-b-2 border-red-500/30" />
+
+        {/* Icon */}
+        <div className="relative mb-8">
+          <div className="absolute inset-0 blur-3xl bg-cyan-500/10 rounded-full scale-150" />
+          <div className="relative w-28 h-28 rounded-2xl border-2 border-cyan-500/30 bg-cyan-950/20 flex items-center justify-center shadow-[0_0_60px_rgba(6,182,212,0.2)] backdrop-blur-sm">
+            <Image src="/icon.svg" alt="SIFT.Glass" width={80} height={80} className="drop-shadow-[0_0_15px_rgba(6,182,212,0.8)]" />
           </div>
-          <h1 className="text-2xl font-extrabold tracking-tight">
-            <span className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">SIFT</span>
-            <span className="text-cyan-400 drop-shadow-[0_0_20px_rgba(6,182,212,0.8)]">.Glass</span>
-          </h1>
-          <span
-            className="ml-2 text-[12px] font-mono font-extrabold tracking-widest px-4 py-1.5 rounded-full uppercase border-2 border-cyan-300 bg-cyan-400/20 text-white shadow-[0_0_25px_rgba(6,182,212,0.8),inset_0_0_10px_rgba(6,182,212,0.5)] backdrop-blur-md"
-            style={{ textShadow: '0 0 10px rgba(255,255,255,0.8), 0 0 20px rgba(6,182,212,0.8)' }}
-          >
-            v1.0.1 — FIND EVIL!
-          </span>
         </div>
-        <div className="flex items-center gap-4 relative z-10">
-          <div className={`flex items-center gap-2.5 px-4 py-2 rounded-full border shadow-lg transition-all duration-500 ${isLive ? 'bg-green-500/10 border-green-500/30 shadow-[0_0_20px_rgba(34,197,94,0.15)]' : 'bg-zinc-800/50 border-zinc-700/50'}`}>
-            <div
-              className={`w-2.5 h-2.5 rounded-full ${isLive ? 'bg-green-400 animate-pulse' : 'bg-zinc-500'}`}
-              style={isLive ? { boxShadow: '0 0 12px rgba(34,197,94,0.8), 0 0 20px rgba(34,197,94,0.4)' } : {}}
-            />
-            <span className={`text-[11px] font-mono font-bold tracking-widest ${isLive ? 'text-green-300 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]' : 'text-zinc-400'}`}>
-              {isLive ? 'AGENT LIVE' : 'DEMO MODE'}
+
+        {/* Title */}
+        <h1 className="text-6xl md:text-8xl font-extrabold tracking-tight mb-4">
+          <span className="text-white" style={{ textShadow: '0 0 30px rgba(255,255,255,0.15)' }}>SIFT</span>
+          <span className="text-cyan-400" style={{ textShadow: '0 0 40px rgba(6,182,212,0.6)' }}>.Glass</span>
+        </h1>
+
+        {/* Tagline */}
+        <p className="text-lg md:text-xl text-zinc-400 max-w-2xl mb-2 leading-relaxed">
+          AI-powered incident response that <span className="text-cyan-300 font-semibold">finds evil</span> in real time.
+        </p>
+        <p className="text-sm text-zinc-500 font-mono tracking-wide mb-10">
+          Watch an autonomous agent investigate, correlate, and reconstruct attack kill chains — live.
+        </p>
+
+        {/* CTA */}
+        <div className="flex flex-col sm:flex-row items-center gap-4 mb-16">
+          <Link
+            href="/dashboard"
+            className="group relative px-8 py-4 rounded-xl font-bold text-base tracking-wide transition-all duration-500 bg-cyan-500 text-black hover:bg-cyan-400 hover:shadow-[0_0_50px_rgba(6,182,212,0.4)] active:scale-95"
+          >
+            <span className="relative z-10 flex items-center gap-2">
+              LAUNCH DASHBOARD
+              <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
             </span>
-          </div>
-        </div>
-      </header>
-
-      <div className="flex-shrink-0 px-4 py-2">
-        <AgentBanner state={agentState} />
-      </div>
-
-      <div className="flex-1 flex gap-3 px-4 pb-4 min-h-0">
-        <div className="flex-[7] glass-panel overflow-hidden">
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            nodeTypes={nodeTypes}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onNodeClick={onNodeClick}
-            fitView
-            fitViewOptions={{ padding: 0.3 }}
-            minZoom={0.3}
-            maxZoom={2}
-            proOptions={{ hideAttribution: true }}
+          </Link>
+          <a
+            href="#features"
+            className="px-8 py-4 rounded-xl font-bold text-base tracking-wide border border-zinc-700 text-zinc-300 hover:border-cyan-500/40 hover:text-cyan-300 transition-all duration-300"
           >
-            <Background
-              variant={BackgroundVariant.Dots}
-              gap={20}
-              size={1}
-              color="rgba(255,255,255,0.03)"
-            />
-            <Controls />
-            <MiniMap
-              nodeColor={(node) => {
-                const status = (node.data as Record<string, unknown>)?.status as string;
-                if (status === 'malicious') return '#ef4444';
-                if (status === 'investigating') return '#06b6d4';
-                if (status === 'shattered') return '#475569';
-                return '#22c55e';
-              }}
-              maskColor="rgba(9,9,11,0.8)"
-            />
-          </ReactFlow>
+            LEARN MORE
+          </a>
         </div>
 
-        <div className="flex-[3] min-w-0">
-          <TerminalPanel lines={terminalLines} />
+        {/* Stats row */}
+        <div className="flex gap-12 md:gap-20">
+          <Stat value="4" label="Scenarios" />
+          <Stat value="<200ms" label="Detection" />
+          <Stat value="91%" label="Confidence" />
+          <Stat value="24/7" label="Autonomous" />
         </div>
-      </div>
+
+        {/* Scroll indicator */}
+        <div className="absolute bottom-12 animate-bounce">
+          <svg className="w-6 h-6 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          </svg>
+        </div>
+      </section>
+
+      {/* ── FEATURES SECTION ── */}
+      <section id="features" className="relative z-10 px-6 py-24 max-w-6xl mx-auto">
+        <div className="text-center mb-16">
+          <span className="text-[11px] font-mono font-bold tracking-[0.3em] text-cyan-400/60 uppercase">Capabilities</span>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-white mt-3 mb-4">
+            Built for <span className="text-cyan-400">Finding Evil</span>
+          </h2>
+          <p className="text-zinc-400 max-w-xl mx-auto text-sm leading-relaxed">
+            An autonomous investigation engine powered by OpenClaw MCP tools, real-time Supabase streaming, and interactive attack graph visualization.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <FeatureCard
+            icon="🕸️"
+            title="Attack Graph"
+            desc="Interactive React Flow visualization maps attack chains across IPs, hashes, files, domains, and processes in real time."
+          />
+          <FeatureCard
+            icon="🤖"
+            title="AI Agent"
+            desc="Autonomous OpenClaw-powered agent investigates alerts, queries VirusTotal, AbuseIPDB, and correlates across data sources."
+          />
+          <FeatureCard
+            icon="⚡"
+            title="Real-Time"
+            desc="Live Supabase Realtime subscriptions push investigation updates instantly — no polling, no refresh needed."
+          />
+          <FeatureCard
+            icon="💥"
+            title="Kill Chains"
+            desc="Agent reconstructs complete attack narratives — from initial access through lateral movement to data exfiltration."
+          />
+        </div>
+      </section>
+
+      {/* ── SCENARIOS SECTION ── */}
+      <section className="relative z-10 px-6 py-24 max-w-6xl mx-auto">
+        <div className="text-center mb-16">
+          <span className="text-[11px] font-mono font-bold tracking-[0.3em] text-cyan-400/60 uppercase">Investigations</span>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-white mt-3 mb-4">
+            4 Pre-Built <span className="text-red-400">Threat Scenarios</span>
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {[
+            { icon: '📦', name: 'Supply-Chain Attack', desc: 'Malicious npm package drops reverse shell, exfiltrates data to C2 server via TLS.' },
+            { icon: '🔐', name: 'Ransomware Outbreak', desc: 'LockBit variant encrypts hospital network, spreads via SMB exploitation.' },
+            { icon: '🔑', name: 'Credential Stuffing', desc: 'Botnet uses leaked credentials to breach corporate SSO and pivot internally.' },
+            { icon: '🕵️', name: 'Insider Threat', desc: 'Privileged engineer exfiltrates source code via encrypted USB and Tor network.' },
+          ].map((s) => (
+            <div key={s.name} className="glass-panel p-6 flex items-start gap-4 hover:border-cyan-500/20 transition-all duration-300 group">
+              <span className="text-3xl flex-shrink-0 group-hover:scale-110 transition-transform">{s.icon}</span>
+              <div>
+                <h3 className="text-base font-bold text-white font-mono tracking-wide mb-1">{s.name}</h3>
+                <p className="text-sm text-zinc-400 leading-relaxed">{s.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── TECH STACK SECTION ── */}
+      <section className="relative z-10 px-6 py-24 max-w-4xl mx-auto text-center">
+        <span className="text-[11px] font-mono font-bold tracking-[0.3em] text-cyan-400/60 uppercase">Tech Stack</span>
+        <h2 className="text-3xl font-extrabold text-white mt-3 mb-8">
+          Production-Grade <span className="text-cyan-400">Architecture</span>
+        </h2>
+        <div className="flex flex-wrap justify-center gap-3 mb-12">
+          {['Next.js 16', 'React 19', 'TypeScript', 'Tailwind v4', 'React Flow', 'Supabase Realtime', 'OpenClaw MCP', 'Python Agent', 'VirusTotal', 'AbuseIPDB'].map((t) => (
+            <TechBadge key={t} name={t} />
+          ))}
+        </div>
+      </section>
+
+      {/* ── FINAL CTA ── */}
+      <section className="relative z-10 px-6 py-32 text-center">
+        <div className="relative inline-block">
+          <div className="absolute inset-0 blur-3xl bg-cyan-500/5 rounded-full scale-150" />
+          <h2 className="relative text-4xl md:text-5xl font-extrabold text-white mb-6">
+            Ready to <span className="text-red-400">Find Evil</span>?
+          </h2>
+        </div>
+        <p className="text-zinc-400 mb-10 max-w-lg mx-auto">
+          Launch the SOC dashboard and watch the AI agent investigate threats in real time.
+        </p>
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-2 px-10 py-5 rounded-xl font-bold text-lg bg-cyan-500 text-black hover:bg-cyan-400 hover:shadow-[0_0_60px_rgba(6,182,212,0.4)] transition-all duration-500 active:scale-95"
+        >
+          LAUNCH DASHBOARD
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+          </svg>
+        </Link>
+      </section>
+
+      {/* ── Footer ── */}
+      <footer className="relative z-10 border-t border-white/5 py-8 text-center">
+        <p className="text-xs text-zinc-600 font-mono">
+          SIFT.Glass — Devpost &quot;Find Evil&quot; Hackathon 2026
+        </p>
+      </footer>
+
+      {/* Keyframes */}
+      <style jsx>{`
+        @keyframes scanDown {
+          0% { top: -2px; }
+          100% { top: 100%; }
+        }
+      `}</style>
     </div>
   );
 }

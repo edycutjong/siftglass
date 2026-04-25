@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: PropsWithChildren) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
-      <body className="bg-soc-bg min-h-screen overflow-hidden">
+      <body className="bg-soc-bg min-h-screen overflow-x-hidden">
         {children}
       </body>
     </html>
