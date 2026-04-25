@@ -5,10 +5,10 @@ test: test-node test-python
 
 # Node tests
 test-node:
-	npm run test
+	pnpm run test
 
 test-node-coverage:
-	npm run test:coverage
+	pnpm run test:coverage
 
 # Python agent tests
 test-python:
@@ -19,5 +19,5 @@ install-python:
 
 # Full CI target
 ci:
-	npm run ci
+	pnpm run ci
 	$(MAKE) test-python
