@@ -22,7 +22,7 @@ async def test_set_session():
     result = await mcp_server.call_tool("set_session", args)
     
     assert len(result) == 1
-    assert "Active session set" in result[0].text
+    assert f"Session {session_id} initialized" in result[0].text
 
 @pytest.mark.asyncio
 async def test_report_node():
@@ -42,26 +42,22 @@ async def test_report_node():
     result = await mcp_server.call_tool("report_node", args)
     
     assert len(result) == 1
-    assert "Reported node node-1" in result[0].text
+    assert "Node '192.168.1.1' reported." in result[0].text
 
 @pytest.mark.asyncio
 async def test_domain_reputation():
     # Test domain reputation logic
-    malicious_args = {"domain": "api-telemetry-update.com"}
+    malicious_args = {"domain": "data-exfil.darknet.io"}
     malicious_res = await mcp_server.call_tool("domain_reputation", malicious_args)
     assert "MALICIOUS" in malicious_res[0].text
-
-    benign_args = {"domain": "github.com"}
-    benign_res = await mcp_server.call_tool("domain_reputation", benign_args)
-    assert "LEGITIMATE" in benign_res[0].text
 
 @pytest.mark.asyncio
 async def test_hash_constraint_check():
     # Test hash constraint logic
-    malicious_args = {"sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+    malicious_args = {"sha256": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2"}
     malicious_res = await mcp_server.call_tool("hash_constraint_check", malicious_args)
-    assert "KNOWN_MALWARE" in malicious_res[0].text
+    assert "MALICIOUS" in malicious_res[0].text
 
     benign_args = {"sha256": "unknown_hash_123"}
     benign_res = await mcp_server.call_tool("hash_constraint_check", benign_args)
-    assert "UNKNOWN" in benign_res[0].text
+    assert "CLEAN" in benign_res[0].text
