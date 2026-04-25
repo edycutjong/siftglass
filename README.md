@@ -203,8 +203,6 @@ SIFT.Glass was built for the [**FIND EVIL! 2026**](https://findevil.devpost.com)
 
 **Platform:** [SIFT Workstation](https://www.sans.org/tools/sift-workstation) + [Protocol SIFT](https://github.com/teamdfir/protocol-sift) (MCP)
 
-**Judge:** Rob T. Lee — CAIO, SANS Institute
-
 ---
 
 ## License

@@ -321,9 +321,9 @@ export default function LandingPage() {
               <div className="text-xs text-zinc-500 mt-1">+ Protocol SIFT (MCP)</div>
             </div>
             <div className="text-center">
-              <div className="text-[10px] font-mono tracking-[0.2em] text-zinc-500 uppercase mb-2">Judge</div>
-              <div className="text-lg font-bold text-white">Rob T. Lee</div>
-              <div className="text-xs text-zinc-500 mt-1">CAIO, SANS Institute</div>
+              <div className="text-[10px] font-mono tracking-[0.2em] text-zinc-500 uppercase mb-2">Prizes</div>
+              <div className="text-lg font-bold text-white">$22,000+</div>
+              <div className="text-xs text-zinc-500 mt-1">Cash + SANS courses</div>
             </div>
           </div>
 
