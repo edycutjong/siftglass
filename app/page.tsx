@@ -299,10 +299,52 @@ export default function LandingPage() {
         </Link>
       </section>
 
+      {/* ── SPONSORS SECTION ── */}
+      <section className="relative z-10 px-6 py-20 max-w-4xl mx-auto">
+        <div className="glass-panel p-8 md:p-12 text-center">
+          <span className="text-[11px] font-mono font-bold tracking-[0.3em] text-cyan-400/60 uppercase">Hackathon</span>
+          <h2 className="text-2xl md:text-3xl font-extrabold text-white mt-3 mb-2">
+            FIND EVIL! <span className="text-red-400">2026</span>
+          </h2>
+          <p className="text-sm text-zinc-400 mb-8 max-w-lg mx-auto">
+            The first hackathon for autonomous incident response. $22,000 in prizes.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="text-center">
+              <div className="text-[10px] font-mono tracking-[0.2em] text-zinc-500 uppercase mb-2">Organized by</div>
+              <div className="text-lg font-bold text-white">SANS Institute</div>
+            </div>
+            <div className="text-center">
+              <div className="text-[10px] font-mono tracking-[0.2em] text-zinc-500 uppercase mb-2">Platform</div>
+              <div className="text-lg font-bold text-white">SIFT Workstation</div>
+              <div className="text-xs text-zinc-500 mt-1">+ Protocol SIFT (MCP)</div>
+            </div>
+            <div className="text-center">
+              <div className="text-[10px] font-mono tracking-[0.2em] text-zinc-500 uppercase mb-2">Judge</div>
+              <div className="text-lg font-bold text-white">Rob T. Lee</div>
+              <div className="text-xs text-zinc-500 mt-1">CAIO, SANS Institute</div>
+            </div>
+          </div>
+
+          <a
+            href="https://findevil.devpost.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-sm font-mono text-cyan-400 hover:text-cyan-300 transition-colors"
+          >
+            findevil.devpost.com
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
+        </div>
+      </section>
+
       {/* ── Footer ── */}
       <footer className="relative z-10 border-t border-white/5 py-8 text-center">
         <p className="text-xs text-zinc-600 font-mono">
-          SIFT.Glass — Devpost &quot;Find Evil&quot; Hackathon 2026
+          SIFT.Glass — SANS &quot;Find Evil!&quot; AI Hackathon 2026
         </p>
       </footer>
 
