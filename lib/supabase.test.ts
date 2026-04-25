@@ -94,10 +94,13 @@ describe('lib/supabase', () => {
     });
 
     it('createClient is called once at module load for the supabase export', () => {
+      // Re-require both modules in the same reset cycle so they share the same jest.fn instance
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { createClient: freshCreate } = require('@supabase/supabase-js');
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       require('@/lib/supabase');
-      expect(mockCreateClient).toHaveBeenCalledTimes(1);
-      expect(mockCreateClient).toHaveBeenCalledWith('https://test.supabase.co', 'anon-key-123');
+      expect(freshCreate).toHaveBeenCalledTimes(1);
+      expect(freshCreate).toHaveBeenCalledWith('https://test.supabase.co', 'anon-key-123');
     });
 
     it('getSupabase returns a client', () => {
@@ -118,15 +121,17 @@ describe('lib/supabase', () => {
 
     it('createClient is called a second time when getSupabase first runs', () => {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { createClient: freshCreate } = require('@supabase/supabase-js');
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { getSupabase } = require('@/lib/supabase');
       // 1st call: module-level supabase export
-      expect(mockCreateClient).toHaveBeenCalledTimes(1);
+      expect(freshCreate).toHaveBeenCalledTimes(1);
       getSupabase();
       // 2nd call: getSupabase singleton creation
-      expect(mockCreateClient).toHaveBeenCalledTimes(2);
+      expect(freshCreate).toHaveBeenCalledTimes(2);
       getSupabase();
       // 3rd call: cached — no more createClient calls
-      expect(mockCreateClient).toHaveBeenCalledTimes(2);
+      expect(freshCreate).toHaveBeenCalledTimes(2);
     });
   });
 });
