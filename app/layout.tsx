@@ -11,6 +11,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(getURL()),
   title: title,
   description: description,
+  keywords: [
+    'SIFT', 'incident response', 'DFIR', 'attack graph', 'threat hunting',
+    'AI agent', 'MCP', 'SANS', 'Find Evil', 'cybersecurity', 'OpenClaw',
+  ],
+  authors: [{ name: 'SIFT.Glass Team' }],
   icons: {
     icon: [
       { url: '/icon.svg', type: 'image/svg+xml' },
@@ -20,6 +25,13 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
+    title: title,
+    description: description,
+    type: 'website',
+    siteName: 'SIFT.Glass',
+  },
+  twitter: {
+    card: 'summary_large_image',
     title: title,
     description: description,
   },
