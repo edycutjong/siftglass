@@ -267,9 +267,10 @@ export default function DashboardPage() {
             <span className="text-cyan-400 drop-shadow-[0_0_20px_rgba(6,182,212,0.8)]">.Glass</span>
           </h1>
           <span
-            className="ml-2 text-[11px] font-mono font-bold tracking-widest px-3 py-1.5 rounded-full uppercase border border-cyan-400/40 bg-cyan-400/10 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.3)]"
+            className="ml-2 text-[12px] font-mono font-extrabold tracking-widest px-4 py-1.5 rounded-full uppercase border-2 border-cyan-300 bg-cyan-400/20 text-white shadow-[0_0_25px_rgba(6,182,212,0.8),inset_0_0_10px_rgba(6,182,212,0.5)] backdrop-blur-md"
+            style={{ textShadow: '0 0 10px rgba(255,255,255,0.8), 0 0 20px rgba(6,182,212,0.8)' }}
           >
-            v0.1.0 — FIND EVIL!
+            v1.0.1 — FIND EVIL!
           </span>
         </div>
         <div className="flex items-center gap-4 relative z-10">
