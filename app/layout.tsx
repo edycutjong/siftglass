@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     'SIFT', 'incident response', 'DFIR', 'attack graph', 'threat hunting',
     'AI agent', 'MCP', 'SANS', 'Find Evil', 'cybersecurity', 'OpenClaw',
   ],
-  authors: [{ name: 'SIFT.Glass Team' }],
+  authors: [{ name: 'Edy Cu' }],
   icons: {
     icon: [
       { url: '/icon.svg', type: 'image/svg+xml' },
