@@ -44,7 +44,7 @@ graph TD
     NextJS -->|"Render Graph"| ReactFlow
     
     %% Styling
-    classDef boundary fill:transparent,stroke:#06b6d4,stroke-width:2px,stroke-dasharray: 5 5
+    classDef boundary fill:transparent,stroke:#06b6d4,stroke-width:2px,stroke-dasharray:5
     class SIFTBoundary boundary
     class StateBoundary boundary
     class WebBoundary boundary
@@ -66,7 +66,7 @@ graph TD
 ### 2. Clone and install frontend
 
 ```bash
-git clone https://github.com/edycutjong/siftglass
+git clone <repository-url>
 cd siftglass
 pnpm install
 ```
@@ -204,14 +204,14 @@ SIFT.Glass was built for the **FIND EVIL! 2026** hackathon. We would like to tha
 **Main Organizers & Core Sponsors**
 Mantle × Bybit × Byreal × Blockchain for Good Alliance
 
-**Co-Organised by**
+**Co-Organised by:**
 DoraHacks, HackQuest
 
-**Co-Sponsored by**
-Tencent Cloud, Animoca Brands, ELFA, Surf, Orbit AI, Minds, Mirana, OpenCheck, Nansen
+**Co-Sponsored by:**
+Tencent Cloud, Animoca Brands, ELFA, Surf, Orbit AI, OpenCheck, Minds, Mirana, Nansen
 
-**Community & AI Partners**
-BU, OT, Decipher, Imperial Blockchain & Fintech, Cornell Blockchain, MU Shanghai, Z.AI, Orakle, HKUST Crypto-Fintech Lab, Akindo, KudasaiJP, Rocketpunch, TradeGainTT, Four Pillars, Blockchain Valley, 浙江大学 (Zhejiang University), Merchant Moe
+**Community & AI Partners:**
+BU, OT, Decipher, Imperial Blockchain & Fintech, Cornell Blockchain, MU Shanghai, Z.AI, Orakle, HKUST Crypto-Fintech Lab, Akindo, KudasaiJP, Rocketpunch, TradeGainTT, Four Pillars, Blockchain Valley, 浙江大学 (Zhejiang University), Merchant Moe, Cornell Blockchain
 
 ---
 
