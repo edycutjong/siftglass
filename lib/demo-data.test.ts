@@ -3,7 +3,12 @@ import {
   DEMO_EDGES,
   DEMO_AGENT_STATE,
   DEMO_TERMINAL,
+  DEMO_SCENARIOS,
 } from '@/lib/demo-data';
+
+/* ═══════════════════════════════════════════════════════════════
+   Backward-compat exports (scenario 0)
+   ═══════════════════════════════════════════════════════════════ */
 
 describe('DEMO_NODES', () => {
   it('has exactly 7 nodes', () => {
@@ -172,5 +177,126 @@ describe('DEMO_TERMINAL', () => {
     expect(types.has('error')).toBe(true);
     expect(types.has('success')).toBe(true);
     expect(types.has('agent')).toBe(true);
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   DEMO_SCENARIOS — all 4 scenarios
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('DEMO_SCENARIOS', () => {
+  it('has exactly 4 scenarios', () => {
+    expect(DEMO_SCENARIOS).toHaveLength(4);
+  });
+
+  it('scenario IDs are unique', () => {
+    const ids = DEMO_SCENARIOS.map((s) => s.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it('scenario[0] matches backward-compat exports', () => {
+    expect(DEMO_SCENARIOS[0].nodes).toBe(DEMO_NODES);
+    expect(DEMO_SCENARIOS[0].edges).toBe(DEMO_EDGES);
+    expect(DEMO_SCENARIOS[0].agentState).toBe(DEMO_AGENT_STATE);
+    expect(DEMO_SCENARIOS[0].terminal).toBe(DEMO_TERMINAL);
+  });
+
+  it.each([
+    ['supply-chain'],
+    ['ransomware'],
+    ['credential-stuffing'],
+    ['insider-threat'],
+  ])('scenario %s exists', (id) => {
+    expect(DEMO_SCENARIOS.find((s) => s.id === id)).toBeDefined();
+  });
+
+  describe.each(DEMO_SCENARIOS.map((s) => [s.id, s]))('scenario "%s"', (_id, scenario) => {
+    const s = scenario as typeof DEMO_SCENARIOS[number];
+
+    it('has required metadata', () => {
+      expect(s.title).toBeDefined();
+      expect(s.description).toBeDefined();
+      expect(s.title.length).toBeGreaterThan(0);
+      expect(s.description.length).toBeGreaterThan(0);
+    });
+
+    it('has at least 5 nodes', () => {
+      expect(s.nodes.length).toBeGreaterThanOrEqual(5);
+    });
+
+    it('node IDs are unique within scenario', () => {
+      const ids = s.nodes.map((n) => n.id);
+      expect(new Set(ids).size).toBe(ids.length);
+    });
+
+    it('all node types are valid', () => {
+      const valid = new Set(['ip', 'domain', 'hash', 'process', 'file', 'user', 'network']);
+      for (const n of s.nodes) expect(valid.has(n.type)).toBe(true);
+    });
+
+    it('all node statuses are valid', () => {
+      const valid = new Set(['investigating', 'malicious', 'benign', 'shattered']);
+      for (const n of s.nodes) expect(valid.has(n.status)).toBe(true);
+    });
+
+    it('confidence values are 0-100', () => {
+      for (const n of s.nodes) {
+        expect(n.confidence).toBeGreaterThanOrEqual(0);
+        expect(n.confidence).toBeLessThanOrEqual(100);
+      }
+    });
+
+    it('edge IDs are unique within scenario', () => {
+      const ids = s.edges.map((e) => e.id);
+      expect(new Set(ids).size).toBe(ids.length);
+    });
+
+    it('all edge endpoints reference existing nodes', () => {
+      const nodeIds = new Set(s.nodes.map((n) => n.id));
+      for (const e of s.edges) {
+        expect(nodeIds.has(e.source)).toBe(true);
+        expect(nodeIds.has(e.target)).toBe(true);
+      }
+    });
+
+    it('has at least one animated edge', () => {
+      expect(s.edges.some((e) => e.animated === true)).toBe(true);
+    });
+
+    it('agentState has valid fields', () => {
+      expect(s.agentState.objective.length).toBeGreaterThan(0);
+      expect(s.agentState.reasoning.length).toBeGreaterThan(0);
+      expect(s.agentState.confidence).toBeGreaterThanOrEqual(0);
+      expect(s.agentState.confidence).toBeLessThanOrEqual(100);
+      expect(['scanning', 'investigating', 'correlating', 'concluded']).toContain(s.agentState.phase);
+    });
+
+    it('terminal has at least 10 lines', () => {
+      expect(s.terminal.length).toBeGreaterThanOrEqual(10);
+    });
+
+    it('terminal line IDs are unique', () => {
+      const ids = s.terminal.map((l) => l.id);
+      expect(new Set(ids).size).toBe(ids.length);
+    });
+
+    it('terminal lines have ascending timestamps', () => {
+      for (let i = 1; i < s.terminal.length; i++) {
+        expect(s.terminal[i].timestamp).toBeGreaterThanOrEqual(s.terminal[i - 1].timestamp);
+      }
+    });
+
+    it('terminal includes all 5 line types', () => {
+      const types = new Set(s.terminal.map((l) => l.type));
+      expect(types.size).toBe(5);
+    });
+
+    it('every node has a position mapping', () => {
+      for (const n of s.nodes) {
+        expect(s.positions[n.id]).toBeDefined();
+        expect(typeof s.positions[n.id].x).toBe('number');
+        expect(typeof s.positions[n.id].y).toBe('number');
+      }
+    });
   });
 });
