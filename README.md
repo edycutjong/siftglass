@@ -197,6 +197,24 @@ The agent logs its tool calls to stdout. The React Flow graph and terminal panel
 
 ---
 
+## Acknowledgments & Sponsors
+
+SIFT.Glass was built for the **FIND EVIL! 2026** hackathon. We would like to thank the organizers, sponsors, and community partners that made this possible:
+
+**Main Organizers & Core Sponsors**
+Mantle × Bybit × Byreal × Blockchain for Good Alliance
+
+**Co-Organised by**
+DoraHacks, HackQuest
+
+**Co-Sponsored by**
+Tencent Cloud, Animoca Brands, ELFA, Surf, Orbit AI, Minds, Mirana, OpenCheck, Nansen
+
+**Community & AI Partners**
+BU, OT, Decipher, Imperial Blockchain & Fintech, Cornell Blockchain, MU Shanghai, Z.AI, Orakle, HKUST Crypto-Fintech Lab, Akindo, KudasaiJP, Rocketpunch, TradeGainTT, Four Pillars, Blockchain Valley, 浙江大学 (Zhejiang University), Merchant Moe
+
+---
+
 ## License
 
 MIT

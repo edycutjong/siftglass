@@ -247,64 +247,41 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-screen bg-[#030712]">
       <header
-        className="flex-shrink-0 border-b border-cyan-500/10 px-5 py-3 flex items-center justify-between relative overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, rgba(9,9,11,0.98) 0%, rgba(6,182,212,0.03) 100%)' }}
+        className="flex-shrink-0 border-b border-cyan-500/20 px-6 py-4 flex items-center justify-between relative overflow-hidden bg-cyan-950/10 shadow-[0_4px_30px_rgba(6,182,212,0.05)]"
       >
         {/* Subtle scanline overlay */}
-        <div className="absolute inset-0 opacity-[0.015] pointer-events-none" style={{
-          backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(6,182,212,0.5) 2px, rgba(6,182,212,0.5) 3px)',
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{
+          backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(6,182,212,1) 2px, rgba(6,182,212,1) 3px)',
         }} />
 
-        <div className="flex items-center gap-4 relative z-10">
+        <div className="flex items-center gap-5 relative z-10">
           <div
-            className="w-9 h-9 rounded-lg flex items-center justify-center text-lg"
-            style={{
-              background: 'linear-gradient(135deg, rgba(6,182,212,0.15) 0%, rgba(6,182,212,0.05) 100%)',
-              border: '1px solid rgba(6,182,212,0.2)',
-              boxShadow: '0 0 20px rgba(6,182,212,0.1)',
-            }}
+            className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-[0_0_20px_rgba(6,182,212,0.2)] border border-cyan-500/30 bg-cyan-500/10"
           >
-            🔬
+            <span style={{ filter: 'drop-shadow(0 0 8px rgba(6,182,212,0.8))' }}>🔬</span>
           </div>
-          <h1 className="text-xl font-extrabold tracking-tight">
-            <span className="text-white" style={{ textShadow: '0 0 30px rgba(255,255,255,0.1)' }}>SIFT</span>
-            <span className="text-cyan-400" style={{ textShadow: '0 0 20px rgba(6,182,212,0.5), 0 0 40px rgba(6,182,212,0.2)' }}>.Glass</span>
+          <h1 className="text-2xl font-extrabold tracking-tight">
+            <span className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">SIFT</span>
+            <span className="text-cyan-400 drop-shadow-[0_0_20px_rgba(6,182,212,0.8)]">.Glass</span>
           </h1>
           <span
-            className="soc-badge text-[10px] font-mono font-semibold tracking-wider px-3 py-1 rounded-full uppercase"
-            style={{
-              background: 'linear-gradient(135deg, rgba(6,182,212,0.12) 0%, rgba(168,85,247,0.08) 100%)',
-              border: '1px solid rgba(6,182,212,0.25)',
-              color: '#67e8f9',
-              textShadow: '0 0 10px rgba(6,182,212,0.3)',
-            }}
+            className="ml-2 text-[11px] font-mono font-bold tracking-widest px-3 py-1.5 rounded-full uppercase border border-cyan-400/40 bg-cyan-400/10 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.3)]"
           >
             v0.1.0 — FIND EVIL!
           </span>
         </div>
         <div className="flex items-center gap-4 relative z-10">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full" style={{
-            background: isLive ? 'rgba(34,197,94,0.08)' : 'rgba(255,255,255,0.03)',
-            border: `1px solid ${isLive ? 'rgba(34,197,94,0.2)' : 'rgba(255,255,255,0.06)'}`,
-          }}>
+          <div className={`flex items-center gap-2.5 px-4 py-2 rounded-full border shadow-lg transition-all duration-500 ${isLive ? 'bg-green-500/10 border-green-500/30 shadow-[0_0_20px_rgba(34,197,94,0.15)]' : 'bg-zinc-800/50 border-zinc-700/50'}`}>
             <div
-              className={`w-2 h-2 rounded-full ${isLive ? 'bg-green-400' : 'bg-zinc-600'}`}
-              style={isLive ? { boxShadow: '0 0 8px rgba(34,197,94,0.6), 0 0 16px rgba(34,197,94,0.3)' } : {}}
+              className={`w-2.5 h-2.5 rounded-full ${isLive ? 'bg-green-400 animate-pulse' : 'bg-zinc-500'}`}
+              style={isLive ? { boxShadow: '0 0 12px rgba(34,197,94,0.8), 0 0 20px rgba(34,197,94,0.4)' } : {}}
             />
-            <span className={`text-[10px] font-mono font-semibold tracking-wider ${isLive ? 'text-green-300' : 'text-zinc-500'}`}>
+            <span className={`text-[11px] font-mono font-bold tracking-widest ${isLive ? 'text-green-300 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]' : 'text-zinc-400'}`}>
               {isLive ? 'AGENT LIVE' : 'DEMO MODE'}
             </span>
           </div>
-          <a
-            href="https://github.com/edycutjong/siftglass"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-zinc-400 hover:text-cyan-400 transition-colors font-mono px-3 py-1.5 rounded-lg hover:bg-cyan-400/5 border border-transparent hover:border-cyan-400/20"
-          >
-            GitHub →
-          </a>
         </div>
       </header>
 
