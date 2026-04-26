@@ -1,0 +1,3 @@
+[submodule "agent/protocol-sift"]
+	path = agent/protocol-sift
+	url = https://github.com/teamdfir/protocol-sift.git

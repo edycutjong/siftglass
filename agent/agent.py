@@ -19,13 +19,31 @@ from typing import Any
 import anthropic
 from dotenv import load_dotenv
 
-# Import MCP tool implementations directly (no stdio transport for demo simplicity)
-import mcp_server as mcp
 from mock_siem import GOLDEN_PATH_ALERT
+from mcp.client.stdio import stdio_client, StdioServerParameters
+from mcp.client.session import ClientSession
 
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env.local"))
 
 MODEL = "claude-sonnet-4-6"
+
+def get_protocol_sift_prompt() -> str:
+    prompt = "\n\n--- PROTOCOL SIFT DFIR FRAMEWORK ---\n"
+    protocol_dir = os.path.join(os.path.dirname(__file__), "protocol-sift")
+    global_claude = os.path.join(protocol_dir, "global", "CLAUDE.md")
+    if os.path.exists(global_claude):
+        with open(global_claude, "r", encoding="utf-8") as f:
+            prompt += f.read() + "\n"
+    
+    skills_dir = os.path.join(protocol_dir, "skills")
+    if os.path.exists(skills_dir):
+        prompt += "\n## DFIR Skills Library\n"
+        for root, _, files in os.walk(skills_dir):
+            for file in sorted(files):
+                if file.endswith(".md"):
+                    with open(os.path.join(root, file), "r", encoding="utf-8") as f:
+                        prompt += f"\n### [{os.path.basename(root)}]\n" + f.read() + "\n"
+    return prompt
 
 SYSTEM_PROMPT = """You are OpenClaw, an elite Incident Response AI agent.
 You investigate security alerts by calling tools to gather evidence, build an attack graph, and reason toward conclusions.
@@ -40,7 +58,7 @@ Rules:
 - Log key findings with log_terminal using appropriate types (agent/info/warning/error/success).
 - When investigation is complete, call update_agent_state with phase=concluded.
 - Be methodical and show your reasoning in the reasoning field of update_agent_state.
-"""
+""" + get_protocol_sift_prompt()
 
 # Tool schemas passed to Claude (mirrors mcp_server.py tools)
 TOOLS: list[dict[str, Any]] = [
@@ -186,17 +204,18 @@ TOOLS: list[dict[str, Any]] = [
 ]
 
 
-async def execute_tool(name: str, arguments: dict) -> str:
-    """Call the MCP server tool implementation and return its text result."""
-    results = await mcp.call_tool(name, arguments)
-    return results[0].text if results else ""
-
-
 async def run_agent(session_id: str) -> None:
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
-    alert_json = json.dumps(GOLDEN_PATH_ALERT, indent=2)
-    user_message = f"""Investigate this SIEM alert:
+    server_params = StdioServerParameters(command="python", args=["mcp_server.py"])
+    
+    print("[OpenClaw] Initializing MCP connection to SIFTGlass IR Server...")
+    async with stdio_client(server_params) as (read_stream, write_stream):
+        async with ClientSession(read_stream, write_stream) as session:
+            await session.initialize()
+
+            alert_json = json.dumps(GOLDEN_PATH_ALERT, indent=2)
+            user_message = f"""Investigate this SIEM alert:
 
 {alert_json}
 
@@ -207,53 +226,56 @@ Position nodes roughly as: node-1 at (50,200), node-2 at (300,200), node-3 at (5
 node-5 at (550,200), node-6 at (50,400), node-7 at (300,400).
 """
 
-    messages: list[dict] = [{"role": "user", "content": user_message}]
+            messages: list[dict] = [{"role": "user", "content": user_message}]
 
-    print(f"[OpenClaw] Starting investigation — session: {session_id}")
+            print(f"[OpenClaw] Starting investigation — session: {session_id}")
 
-    while True:
-        response = client.messages.create(
-            model=MODEL,
-            max_tokens=4096,
-            system=SYSTEM_PROMPT,
-            tools=TOOLS,
-            messages=messages,
-        )
+            while True:
+                response = client.messages.create(
+                    model=MODEL,
+                    max_tokens=4096,
+                    system=SYSTEM_PROMPT,
+                    tools=TOOLS,
+                    messages=messages,
+                )
 
-        # Add assistant response to history
-        messages.append({"role": "assistant", "content": response.content})
+                # Add assistant response to history
+                messages.append({"role": "assistant", "content": response.content})
 
-        if response.stop_reason == "end_turn":
-            print("[OpenClaw] Investigation concluded.")
-            break
+                if response.stop_reason == "end_turn":
+                    print("[OpenClaw] Investigation concluded.")
+                    break
 
-        if response.stop_reason != "tool_use":
-            print(f"[OpenClaw] Unexpected stop reason: {response.stop_reason}")
-            break
+                if response.stop_reason != "tool_use":
+                    print(f"[OpenClaw] Unexpected stop reason: {response.stop_reason}")
+                    break
 
-        # Execute all tool calls
-        tool_results = []
-        for block in response.content:
-            if block.type != "tool_use":
-                continue
+                # Execute all tool calls via MCP protocol
+                tool_results = []
+                for block in response.content:
+                    if block.type != "tool_use":
+                        continue
 
-            print(
-                f"[MCP] {block.name}({json.dumps(block.input, separators=(',', ':'))})"
-            )
-            result = await execute_tool(block.name, block.input)
-            print(f"[MCP] → {result}")
+                    print(f"[MCP] {block.name}({json.dumps(block.input, separators=(',', ':'))})")
+                    try:
+                        result = await session.call_tool(block.name, arguments=block.input)
+                        text_result = result.content[0].text if result.content else ""
+                    except Exception as e:
+                        text_result = f"Error calling MCP tool: {e}"
 
-            tool_results.append(
-                {
-                    "type": "tool_result",
-                    "tool_use_id": block.id,
-                    "content": result,
-                }
-            )
+                    print(f"[MCP] → {text_result}")
 
-        messages.append({"role": "user", "content": tool_results})
+                    tool_results.append(
+                        {
+                            "type": "tool_result",
+                            "tool_use_id": block.id,
+                            "content": text_result,
+                        }
+                    )
 
-    print("[OpenClaw] Done.")
+                messages.append({"role": "user", "content": tool_results})
+
+            print("[OpenClaw] Done.")
 
 
 def main():
