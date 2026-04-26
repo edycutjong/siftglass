@@ -1,10 +1,10 @@
 <div align="center">
-  <img src="docs/assets/icon.svg" alt="SIFT.Glass Logo" width="120">
+  <img src="docs/assets/og-image.png" alt="SIFT.Glass OG Image" width="800">
   <h1>SIFT.Glass 🔍</h1>
   <p><em>AI incident response agent that livestreams threat-hunting reasoning to a real-time visual attack graph — built for <strong>FIND EVIL! 2026</strong>.</em></p>
 
   [![YouTube Demo](https://img.shields.io/badge/▶_Watch_Demo-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/fsi0KBf0MBk)
-  [![Live Demo](https://img.shields.io/badge/Live_App-siftglass.vercel.app-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://siftglass.vercel.app)
+  [![Live Demo](https://img.shields.io/badge/Live_App-siftglass.edycu.dev-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://siftglass.edycu.dev)
   [![Devpost](https://img.shields.io/badge/Devpost-Submission-003E54?style=for-the-badge&logo=devpost&logoColor=white)](https://devpost.com/software/sift-glass)
 
   [![Next.js 16](https://img.shields.io/badge/Next.js-16-000000?style=flat-square&logo=next.js)](https://nextjs.org)
