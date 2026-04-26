@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="docs/assets/og-image.png" alt="SIFT.Glass OG Image" width="800">
+  <img src="app/opengraph-image.png" alt="SIFT.Glass OG Image" width="800">
   <h1>SIFT.Glass 🔍</h1>
   <p><em>AI incident response agent that livestreams threat-hunting reasoning to a real-time visual attack graph — built for <strong>FIND EVIL! 2026</strong>.</em></p>
 
@@ -10,7 +10,8 @@
   [![Next.js 16](https://img.shields.io/badge/Next.js-16-000000?style=flat-square&logo=next.js)](https://nextjs.org)
   [![React 19](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev)
   [![Supabase](https://img.shields.io/badge/Supabase-Realtime-3FCF8E?style=flat-square&logo=supabase&logoColor=white)](https://supabase.com)
-  [![Python](https://img.shields.io/badge/Python-Claude_API-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
+  [![Python](https://img.shields.io/badge/Python-FastAPI-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
+  [![Anthropic](https://img.shields.io/badge/Anthropic-Claude_3.7_Sonnet-D97757?style=flat-square&logo=anthropic&logoColor=white)](https://anthropic.com)
   [![MCP](https://img.shields.io/badge/MCP-Tool_Orchestration-06b6d4?style=flat-square)](https://modelcontextprotocol.io)
   [![License: MIT](https://img.shields.io/badge/License-MIT-22c55e?style=flat-square)](LICENSE)
 </div>
@@ -19,9 +20,7 @@
 
 ## 📸 See it in Action
 
-[![Watch the demo on YouTube](https://img.youtube.com/vi/fsi0KBf0MBk/maxresdefault.jpg)](https://youtu.be/fsi0KBf0MBk)
-
-> ▶️ **[Watch the full autonomous investigation on YouTube](https://youtu.be/fsi0KBf0MBk)** — Complete kill chain reconstruction in under 2 minutes.
+> [![YouTube](https://img.shields.io/badge/YouTube-%23FF0000.svg?style=flat-square&logo=YouTube&logoColor=white)](https://youtu.be/fsi0KBf0MBk) **[Watch the full autonomous investigation](https://youtu.be/fsi0KBf0MBk)** — Complete kill chain reconstruction in under 2 minutes.
 
 | Timestamp | What's Happening |
 |-----------|------------------|
