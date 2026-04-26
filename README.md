@@ -1,7 +1,7 @@
 <div align="center">
   <a href="https://youtu.be/fsi0KBf0MBk"><img src="app/opengraph-image.png" alt="SIFT.Glass OG Image" width="800"></a>
   <h1>SIFT.Glass 🔍</h1>
-  <p><em>AI incident response agent that livestreams threat-hunting reasoning to a real-time visual attack graph — built for <strong>FIND EVIL! 2026</strong>.</em></p>
+  <p><em>AI incident response agent that livestreams threat-hunting reasoning to a real-time visual attack graph — built for <strong>FIND EVIL! 2026</strong>. Powered by the official <a href="https://github.com/teamdfir/protocol-sift">teamdfir/protocol-sift</a> framework.</em></p>
 
 [![YouTube Demo](https://img.shields.io/badge/▶_Watch_Demo-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/fsi0KBf0MBk)
 [![Live Demo](https://img.shields.io/badge/Live_App-siftglass.edycu.dev-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://siftglass.edycu.dev)
@@ -100,6 +100,7 @@ graph TD
 
 | Sponsor                          | How We Used It                                                                                                                                              | Code Location                                                                        |
 | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| **SANS Institute**               | Natively embedded the official [`teamdfir/protocol-sift`](https://github.com/teamdfir/protocol-sift) experimental framework. Our agent dynamically consumes the SIFT persona (`CLAUDE.md`) and DFIR skill libraries directly into its reasoning engine. | [`agent/protocol-sift/`](agent/protocol-sift/)       |
 | **Model Context Protocol (MCP)** | Custom MCP-based tool orchestration for all 9 IR tools — the agent calls `report_node`, `cancel_hypothesis`, `domain_reputation`, etc. via the MCP protocol | [`agent/mcp_server.py`](agent/mcp_server.py)                                         |
 | **Supabase**                     | Realtime PostgreSQL subscriptions power the live attack graph — every node/edge/log streams instantly to the frontend                                       | [`lib/supabase.ts`](lib/supabase.ts), [`supabase/migrations/`](supabase/migrations/) |
 | **Anthropic (Claude)**           | Claude Sonnet 4 drives the autonomous investigation — the agent reasons, self-corrects, and generates containment playbooks                                 | [`agent/agent.py`](agent/agent.py)                                                   |
