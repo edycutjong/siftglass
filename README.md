@@ -42,7 +42,7 @@
 
 ## 💡 The Problem & Solution
 
-**The Problem:** Security analysts spend 45+ minutes manually investigating each SIEM alert — correlating logs, querying threat intel APIs, and building kill chain diagrams by hand. SOC teams face alert fatigue with 11,000+ alerts per day, and the reasoning behind each investigation is lost the moment it ends.
+**The Problem:** Security analysts spend 45+ minutes manually investigating each SIEM alert — correlating logs, querying threat intel APIs, and building kill chain diagrams by hand. SOC teams face alert fatigue with thousands of alerts daily, and the reasoning behind each investigation is lost the moment it ends.
 
 **SIFT.Glass** solves this by deploying an autonomous AI agent (OpenClaw) that **livestreams its entire investigative reasoning** to a real-time React Flow attack graph. Every hypothesis, tool call, and piece of evidence appears live. When the agent detects a false positive, the bad node **shatters** and the agent self-corrects — all visible to the analyst.
 
@@ -114,7 +114,7 @@ graph TD
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (required by Supabase CLI)
 - Node.js 20+ and pnpm
 - Python 3.11+
-- [Supabase CLI](https://supabase.com/docs/guides/cli) (`brew install supabase/tap/supabase`)
+- [Supabase CLI](https://supabase.com/docs/guides/cli) — `brew install supabase/tap/supabase` (macOS) or `npm i -g supabase` (all platforms)
 - Anthropic API key ([get one free](https://console.anthropic.com/settings/keys))
 
 ### Quick Start
@@ -169,6 +169,7 @@ pnpm dev
 
 > [!TIP]
 > `supabase db reset` drops all tables, re-applies migrations, and gives you a clean slate. You do **not** need to stop/remove Docker containers or volumes.
+
 ---
 
 ## 📁 Project Structure
@@ -224,7 +225,7 @@ pnpm dev
 
 ## 🙏 Acknowledgments
 
-Built for the [**FIND EVIL! 2026**](https://findevil.devpost.com) hackathon — the first hackathon for autonomous incident response.
+Built for the [**FIND EVIL! 2026**](https://findevil.devpost.com) hackathon — pushing the frontier of autonomous incident response.
 
 | | |
 |---|---|
