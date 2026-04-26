@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="app/opengraph-image.png" alt="SIFT.Glass OG Image" width="800">
+  <a href="https://youtu.be/fsi0KBf0MBk"><img src="app/opengraph-image.png" alt="SIFT.Glass OG Image" width="800"></a>
   <h1>SIFT.Glass 🔍</h1>
   <p><em>AI incident response agent that livestreams threat-hunting reasoning to a real-time visual attack graph — built for <strong>FIND EVIL! 2026</strong>.</em></p>
 
@@ -8,10 +8,11 @@
   [![Devpost](https://img.shields.io/badge/Devpost-Submission-003E54?style=for-the-badge&logo=devpost&logoColor=white)](https://devpost.com/software/sift-glass)
 
   [![Next.js 16](https://img.shields.io/badge/Next.js-16-000000?style=flat-square&logo=next.js)](https://nextjs.org)
-  [![React 19](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev)
+  [![React 19](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=white)](https://react.dev)
   [![Supabase](https://img.shields.io/badge/Supabase-Realtime-3FCF8E?style=flat-square&logo=supabase&logoColor=white)](https://supabase.com)
-  [![Python](https://img.shields.io/badge/Python-FastAPI-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
-  [![Anthropic](https://img.shields.io/badge/Anthropic-Claude_3.7_Sonnet-D97757?style=flat-square&logo=anthropic&logoColor=white)](https://anthropic.com)
+  <br>
+  [![Python](https://img.shields.io/badge/Python-Agent-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
+  [![Anthropic](https://img.shields.io/badge/Anthropic-Claude_Sonnet_4-D97757?style=flat-square&logo=anthropic&logoColor=white)](https://anthropic.com)
   [![MCP](https://img.shields.io/badge/MCP-Tool_Orchestration-06b6d4?style=flat-square)](https://modelcontextprotocol.io)
   [![License: MIT](https://img.shields.io/badge/License-MIT-22c55e?style=flat-square)](LICENSE)
 </div>
@@ -56,7 +57,7 @@
 | **Frontend** | Next.js 16, React 19, React Flow | Real-time attack graph visualization |
 | **Styling** | Tailwind CSS v4 | Military SOC aesthetic, dark mode |
 | **State** | Supabase (PostgreSQL + Realtime) | Live event streaming via subscriptions |
-| **Agent** | Python + Claude claude-sonnet-4-6 | Autonomous reasoning engine |
+| **Agent** | Python + Claude Sonnet 4 | Autonomous reasoning engine |
 | **Orchestration** | Model Context Protocol (MCP) | Structured tool calls for IR workflow |
 | **Threat Intel** | VirusTotal, Domain Reputation | External intelligence enrichment |
 
@@ -94,7 +95,7 @@ graph TD
 |---------|---------------|---------------|
 | **SANS / Protocol SIFT** | MCP-based tool orchestration for all 9 IR tools — the agent calls `report_node`, `cancel_hypothesis`, `domain_reputation`, etc. via the MCP protocol | [`agent/mcp_server.py`](agent/mcp_server.py) |
 | **Supabase** | Realtime PostgreSQL subscriptions power the live attack graph — every node/edge/log streams instantly to the frontend | [`lib/supabase.ts`](lib/supabase.ts), [`supabase/migrations/`](supabase/migrations/) |
-| **Anthropic (Claude)** | Claude claude-sonnet-4-6 drives the autonomous investigation — the agent reasons, self-corrects, and generates containment playbooks | [`agent/agent.py`](agent/agent.py) |
+| **Anthropic (Claude)** | Claude Sonnet 4 drives the autonomous investigation — the agent reasons, self-corrects, and generates containment playbooks | [`agent/agent.py`](agent/agent.py) |
 
 ---
 
@@ -102,6 +103,7 @@ graph TD
 
 ### Prerequisites
 
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (required by Supabase CLI)
 - Node.js 20+ and pnpm
 - Python 3.11+
 - [Supabase CLI](https://supabase.com/docs/guides/cli) (`brew install supabase/tap/supabase`)
@@ -148,6 +150,20 @@ The dashboard automatically switches from **DEMO MODE** to **AGENT LIVE** when t
 To replay a specific session: `python agent.py --session <uuid>`
 To watch from the frontend: `http://localhost:3000?session=<uuid>`
 
+### Replay the Demo
+
+To reset the database and re-run the demo from scratch:
+
+```bash
+# Wipe all data and re-apply schema (no need to delete Docker volumes)
+npx supabase db reset
+
+# Restart the frontend
+pnpm dev
+```
+
+> [!TIP]
+> `supabase db reset` drops all tables, re-applies migrations, and gives you a clean slate. You do **not** need to stop/remove Docker containers or volumes.
 ---
 
 ## 📁 Project Structure
