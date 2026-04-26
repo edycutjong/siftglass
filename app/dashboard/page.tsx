@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import {
   ReactFlow,
   MiniMap,
@@ -282,15 +283,17 @@ export default function DashboardPage() {
         }} />
 
         <div className="flex items-center gap-5 relative z-10">
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden shadow-[0_0_20px_rgba(6,182,212,0.2)] border border-cyan-500/30 bg-cyan-500/10"
-          >
-            <Image src="/icon.svg" alt="SIFT.Glass" width={32} height={32} className="drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
-          </div>
-          <h1 className="text-2xl font-extrabold tracking-tight">
-            <span className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">SIFT</span>
-            <span className="text-cyan-400 drop-shadow-[0_0_20px_rgba(6,182,212,0.8)]">.Glass</span>
-          </h1>
+          <Link href="/" className="flex items-center gap-5 hover:opacity-80 transition-opacity">
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden shadow-[0_0_20px_rgba(6,182,212,0.2)] border border-cyan-500/30 bg-cyan-500/10"
+            >
+              <Image src="/icon.svg" alt="SIFT.Glass" width={32} height={32} className="drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
+            </div>
+            <h1 className="text-2xl font-extrabold tracking-tight">
+              <span className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">SIFT</span>
+              <span className="text-cyan-400 drop-shadow-[0_0_20px_rgba(6,182,212,0.8)]">.Glass</span>
+            </h1>
+          </Link>
           <span
             className="ml-2 text-[12px] font-mono font-extrabold tracking-widest px-4 py-1.5 rounded-full uppercase border-2 border-cyan-300 bg-cyan-400/20 text-white shadow-[0_0_25px_rgba(6,182,212,0.8),inset_0_0_10px_rgba(6,182,212,0.5)] backdrop-blur-md"
             style={{ textShadow: '0 0 10px rgba(255,255,255,0.8), 0 0 20px rgba(6,182,212,0.8)' }}

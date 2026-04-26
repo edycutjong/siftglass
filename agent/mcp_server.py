@@ -209,7 +209,7 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
         return [types.TextContent(type="text", text="ERROR: call set_session first.")]
 
     if name == "report_node":
-        sb.table("investigation_nodes").insert({
+        sb.table("investigation_nodes").upsert({
             "id": arguments["id"],
             "session_id": _session_id,
             "label": arguments["label"],
