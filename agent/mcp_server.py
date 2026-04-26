@@ -5,7 +5,6 @@ Run with: python mcp_server.py
 """
 
 import asyncio
-import json
 import os
 import uuid
 from datetime import datetime, timezone
@@ -16,7 +15,7 @@ from mcp.server.stdio import stdio_server
 import mcp.types as types
 from supabase import create_client, Client
 
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env.local'))
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env.local"))
 
 SUPABASE_URL = os.environ["NEXT_PUBLIC_SUPABASE_URL"]
 SUPABASE_SERVICE_KEY = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
@@ -60,6 +59,7 @@ def now_iso() -> str:
 # Tool definitions
 # ─────────────────────────────────────────────────────────────
 
+
 @server.list_tools()
 async def list_tools() -> list[types.Tool]:
     return [
@@ -69,8 +69,14 @@ async def list_tools() -> list[types.Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "session_id": {"type": "string", "description": "Unique session ID (UUID)"},
-                    "objective": {"type": "string", "description": "Investigation objective"},
+                    "session_id": {
+                        "type": "string",
+                        "description": "Unique session ID (UUID)",
+                    },
+                    "objective": {
+                        "type": "string",
+                        "description": "Investigation objective",
+                    },
                 },
                 "required": ["session_id", "objective"],
             },
@@ -82,9 +88,26 @@ async def list_tools() -> list[types.Tool]:
                 "type": "object",
                 "properties": {
                     "id": {"type": "string", "description": "Unique node ID"},
-                    "label": {"type": "string", "description": "Display label (e.g. IP address, domain name)"},
-                    "type": {"type": "string", "enum": ["ip", "domain", "hash", "process", "file", "user", "network"]},
-                    "details": {"type": "string", "description": "Investigation context or evidence"},
+                    "label": {
+                        "type": "string",
+                        "description": "Display label (e.g. IP address, domain name)",
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "ip",
+                            "domain",
+                            "hash",
+                            "process",
+                            "file",
+                            "user",
+                            "network",
+                        ],
+                    },
+                    "details": {
+                        "type": "string",
+                        "description": "Investigation context or evidence",
+                    },
                     "confidence": {"type": "integer", "minimum": 0, "maximum": 100},
                     "position_x": {"type": "number", "default": 0},
                     "position_y": {"type": "number", "default": 0},
@@ -99,9 +122,15 @@ async def list_tools() -> list[types.Tool]:
                 "type": "object",
                 "properties": {
                     "node_id": {"type": "string"},
-                    "status": {"type": "string", "enum": ["investigating", "malicious", "benign", "shattered"]},
+                    "status": {
+                        "type": "string",
+                        "enum": ["investigating", "malicious", "benign", "shattered"],
+                    },
                     "confidence": {"type": "integer", "minimum": 0, "maximum": 100},
-                    "details": {"type": "string", "description": "Updated evidence or reason for status change"},
+                    "details": {
+                        "type": "string",
+                        "description": "Updated evidence or reason for status change",
+                    },
                 },
                 "required": ["node_id", "status", "confidence"],
             },
@@ -114,7 +143,10 @@ async def list_tools() -> list[types.Tool]:
                 "properties": {
                     "source": {"type": "string", "description": "Source node ID"},
                     "target": {"type": "string", "description": "Target node ID"},
-                    "label": {"type": "string", "description": "Relationship label (e.g. 'installed', 'connected to')"},
+                    "label": {
+                        "type": "string",
+                        "description": "Relationship label (e.g. 'installed', 'connected to')",
+                    },
                     "animated": {"type": "boolean", "default": True},
                 },
                 "required": ["source", "target", "label"],
@@ -127,7 +159,10 @@ async def list_tools() -> list[types.Tool]:
                 "type": "object",
                 "properties": {
                     "sha256": {"type": "string", "description": "SHA256 hash to check"},
-                    "filename": {"type": "string", "description": "File name for context"},
+                    "filename": {
+                        "type": "string",
+                        "description": "File name for context",
+                    },
                 },
                 "required": ["sha256"],
             },
@@ -150,7 +185,10 @@ async def list_tools() -> list[types.Tool]:
                 "type": "object",
                 "properties": {
                     "node_id": {"type": "string", "description": "Node ID to shatter"},
-                    "reason": {"type": "string", "description": "Why this hypothesis is being cancelled"},
+                    "reason": {
+                        "type": "string",
+                        "description": "Why this hypothesis is being cancelled",
+                    },
                 },
                 "required": ["node_id", "reason"],
             },
@@ -165,7 +203,15 @@ async def list_tools() -> list[types.Tool]:
                     "reasoning": {"type": "string"},
                     "confidence": {"type": "integer", "minimum": 0, "maximum": 100},
                     "current_tool": {"type": "string"},
-                    "phase": {"type": "string", "enum": ["scanning", "investigating", "correlating", "concluded"]},
+                    "phase": {
+                        "type": "string",
+                        "enum": [
+                            "scanning",
+                            "investigating",
+                            "correlating",
+                            "concluded",
+                        ],
+                    },
                 },
                 "required": ["reasoning", "confidence", "phase"],
             },
@@ -176,7 +222,10 @@ async def list_tools() -> list[types.Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "type": {"type": "string", "enum": ["info", "warning", "error", "success", "agent"]},
+                    "type": {
+                        "type": "string",
+                        "enum": ["info", "warning", "error", "success", "agent"],
+                    },
                     "content": {"type": "string"},
                 },
                 "required": ["type", "content"],
@@ -189,6 +238,7 @@ async def list_tools() -> list[types.Tool]:
 # Tool implementations
 # ─────────────────────────────────────────────────────────────
 
+
 @server.call_tool()
 async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
     global _session_id
@@ -196,31 +246,41 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
 
     if name == "set_session":
         _session_id = arguments["session_id"]
-        sb.table("agent_state").upsert({
-            "session_id": _session_id,
-            "objective": arguments["objective"],
-            "reasoning": "Starting investigation...",
-            "confidence": 0,
-            "phase": "scanning",
-        }).execute()
-        return [types.TextContent(type="text", text=f"Session {_session_id} initialized.")]
+        sb.table("agent_state").upsert(
+            {
+                "session_id": _session_id,
+                "objective": arguments["objective"],
+                "reasoning": "Starting investigation...",
+                "confidence": 0,
+                "phase": "scanning",
+            }
+        ).execute()
+        return [
+            types.TextContent(type="text", text=f"Session {_session_id} initialized.")
+        ]
 
     if not _session_id:
         return [types.TextContent(type="text", text="ERROR: call set_session first.")]
 
     if name == "report_node":
-        sb.table("investigation_nodes").upsert({
-            "id": arguments["id"],
-            "session_id": _session_id,
-            "label": arguments["label"],
-            "type": arguments["type"],
-            "status": "investigating",
-            "confidence": arguments["confidence"],
-            "details": arguments["details"],
-            "position_x": arguments.get("position_x", 0),
-            "position_y": arguments.get("position_y", 0),
-        }).execute()
-        return [types.TextContent(type="text", text=f"Node '{arguments['label']}' reported.")]
+        sb.table("investigation_nodes").upsert(
+            {
+                "id": arguments["id"],
+                "session_id": _session_id,
+                "label": arguments["label"],
+                "type": arguments["type"],
+                "status": "investigating",
+                "confidence": arguments["confidence"],
+                "details": arguments["details"],
+                "position_x": arguments.get("position_x", 0),
+                "position_y": arguments.get("position_y", 0),
+            }
+        ).execute()
+        return [
+            types.TextContent(
+                type="text", text=f"Node '{arguments['label']}' reported."
+            )
+        ]
 
     if name == "update_node_status":
         update: dict = {
@@ -229,20 +289,34 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
         }
         if "details" in arguments:
             update["details"] = arguments["details"]
-        sb.table("investigation_nodes").update(update).eq("id", arguments["node_id"]).execute()
-        return [types.TextContent(type="text", text=f"Node {arguments['node_id']} → {arguments['status']} ({arguments['confidence']}%).")]
+        sb.table("investigation_nodes").update(update).eq(
+            "id", arguments["node_id"]
+        ).execute()
+        return [
+            types.TextContent(
+                type="text",
+                text=f"Node {arguments['node_id']} → {arguments['status']} ({arguments['confidence']}%).",
+            )
+        ]
 
     if name == "add_edge":
         edge_id = f"e-{arguments['source']}-{arguments['target']}"
-        sb.table("investigation_edges").upsert({
-            "id": edge_id,
-            "session_id": _session_id,
-            "source": arguments["source"],
-            "target": arguments["target"],
-            "label": arguments["label"],
-            "animated": arguments.get("animated", True),
-        }).execute()
-        return [types.TextContent(type="text", text=f"Edge: {arguments['source']} → {arguments['target']} ({arguments['label']}).")]
+        sb.table("investigation_edges").upsert(
+            {
+                "id": edge_id,
+                "session_id": _session_id,
+                "source": arguments["source"],
+                "target": arguments["target"],
+                "label": arguments["label"],
+                "animated": arguments.get("animated", True),
+            }
+        ).execute()
+        return [
+            types.TextContent(
+                type="text",
+                text=f"Edge: {arguments['source']} → {arguments['target']} ({arguments['label']}).",
+            )
+        ]
 
     if name == "hash_constraint_check":
         sha256 = arguments["sha256"].lower()
@@ -257,21 +331,32 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
         if domain in MALICIOUS_DOMAINS:
             result = f"MALICIOUS: {MALICIOUS_DOMAINS[domain]}"
         elif domain in LEGITIMATE_DOMAINS:
-            result = f"LEGITIMATE: known CDN/infrastructure provider — not a threat indicator"
+            result = (
+                "LEGITIMATE: known CDN/infrastructure provider — not a threat indicator"
+            )
         else:
             result = "UNKNOWN: no reputation data available"
         return [types.TextContent(type="text", text=result)]
 
     if name == "cancel_hypothesis":
         # Mark the node as shattered
-        sb.table("investigation_nodes").update({
-            "status": "shattered",
-            "confidence": 0,
-            "details": f"Hypothesis cancelled: {arguments['reason']}",
-        }).eq("id", arguments["node_id"]).execute()
+        sb.table("investigation_nodes").update(
+            {
+                "status": "shattered",
+                "confidence": 0,
+                "details": f"Hypothesis cancelled: {arguments['reason']}",
+            }
+        ).eq("id", arguments["node_id"]).execute()
         # Delete outgoing edges from this node
-        sb.table("investigation_edges").delete().eq("source", arguments["node_id"]).execute()
-        return [types.TextContent(type="text", text=f"Hypothesis shattered: {arguments['node_id']}. Reason: {arguments['reason']}")]
+        sb.table("investigation_edges").delete().eq(
+            "source", arguments["node_id"]
+        ).execute()
+        return [
+            types.TextContent(
+                type="text",
+                text=f"Hypothesis shattered: {arguments['node_id']}. Reason: {arguments['reason']}",
+            )
+        ]
 
     if name == "update_agent_state":
         update = {
@@ -288,12 +373,14 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
 
     if name == "log_terminal":
         line_id = str(uuid.uuid4())
-        sb.table("terminal_lines").insert({
-            "id": line_id,
-            "session_id": _session_id,
-            "type": arguments["type"],
-            "content": arguments["content"],
-        }).execute()
+        sb.table("terminal_lines").insert(
+            {
+                "id": line_id,
+                "session_id": _session_id,
+                "type": arguments["type"],
+                "content": arguments["content"],
+            }
+        ).execute()
         return [types.TextContent(type="text", text="Logged.")]
 
     return [types.TextContent(type="text", text=f"Unknown tool: {name}")]
@@ -303,9 +390,12 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
 # Entry point
 # ─────────────────────────────────────────────────────────────
 
+
 async def main():
     async with stdio_server() as (read_stream, write_stream):
-        await server.run(read_stream, write_stream, server.create_initialization_options())
+        await server.run(
+            read_stream, write_stream, server.create_initialization_options()
+        )
 
 
 if __name__ == "__main__":

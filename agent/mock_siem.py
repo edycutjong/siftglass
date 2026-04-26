@@ -9,7 +9,12 @@ GOLDEN_PATH_ALERT = {
     "raw_events": [
         {"type": "dns", "query": "cdn.legit-analytics.com", "count": 312},
         {"type": "dns", "query": "data-exfil.darknet.io", "count": 535},
-        {"type": "process", "name": "npm", "pid": 4821, "args": "install evil-pkg@2.1.0"},
+        {
+            "type": "process",
+            "name": "npm",
+            "pid": 4821,
+            "args": "install evil-pkg@2.1.0",
+        },
         {"type": "file", "path": "/tmp/.hidden_shell", "action": "created"},
     ],
     "package_artifacts": [

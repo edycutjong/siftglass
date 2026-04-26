@@ -368,7 +368,9 @@ describe('DashboardPage — handleScenarioChange', () => {
     fireEvent.click(picker); // mock calls onSelect('ransomware')
     expect(picker.getAttribute('data-active')).toBe('ransomware');
     
-    jest.runAllTimers();
+    act(() => {
+      jest.runAllTimers();
+    });
     expect(mockFitView).toHaveBeenCalled();
     jest.useRealTimers();
   });

@@ -9,22 +9,21 @@ Usage:
 The agent uses the golden-path supply-chain attack scenario from mock_siem.py.
 """
 
+import argparse
 import asyncio
 import json
 import os
-import sys
 import uuid
-import argparse
 from typing import Any
 
 import anthropic
 from dotenv import load_dotenv
 
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env.local'))
-
 # Import MCP tool implementations directly (no stdio transport for demo simplicity)
 import mcp_server as mcp
 from mock_siem import GOLDEN_PATH_ALERT
+
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env.local"))
 
 MODEL = "claude-sonnet-4-6"
 
@@ -65,7 +64,18 @@ TOOLS: list[dict[str, Any]] = [
             "properties": {
                 "id": {"type": "string"},
                 "label": {"type": "string"},
-                "type": {"type": "string", "enum": ["ip", "domain", "hash", "process", "file", "user", "network"]},
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "ip",
+                        "domain",
+                        "hash",
+                        "process",
+                        "file",
+                        "user",
+                        "network",
+                    ],
+                },
                 "details": {"type": "string"},
                 "confidence": {"type": "integer", "minimum": 0, "maximum": 100},
                 "position_x": {"type": "number"},
@@ -81,7 +91,10 @@ TOOLS: list[dict[str, Any]] = [
             "type": "object",
             "properties": {
                 "node_id": {"type": "string"},
-                "status": {"type": "string", "enum": ["investigating", "malicious", "benign", "shattered"]},
+                "status": {
+                    "type": "string",
+                    "enum": ["investigating", "malicious", "benign", "shattered"],
+                },
                 "confidence": {"type": "integer", "minimum": 0, "maximum": 100},
                 "details": {"type": "string"},
             },
@@ -147,7 +160,10 @@ TOOLS: list[dict[str, Any]] = [
                 "reasoning": {"type": "string"},
                 "confidence": {"type": "integer", "minimum": 0, "maximum": 100},
                 "current_tool": {"type": "string"},
-                "phase": {"type": "string", "enum": ["scanning", "investigating", "correlating", "concluded"]},
+                "phase": {
+                    "type": "string",
+                    "enum": ["scanning", "investigating", "correlating", "concluded"],
+                },
             },
             "required": ["reasoning", "confidence", "phase"],
         },
@@ -158,7 +174,10 @@ TOOLS: list[dict[str, Any]] = [
         "input_schema": {
             "type": "object",
             "properties": {
-                "type": {"type": "string", "enum": ["info", "warning", "error", "success", "agent"]},
+                "type": {
+                    "type": "string",
+                    "enum": ["info", "warning", "error", "success", "agent"],
+                },
                 "content": {"type": "string"},
             },
             "required": ["type", "content"],
@@ -218,15 +237,19 @@ node-5 at (550,200), node-6 at (50,400), node-7 at (300,400).
             if block.type != "tool_use":
                 continue
 
-            print(f"[MCP] {block.name}({json.dumps(block.input, separators=(',', ':'))})")
+            print(
+                f"[MCP] {block.name}({json.dumps(block.input, separators=(',', ':'))})"
+            )
             result = await execute_tool(block.name, block.input)
             print(f"[MCP] → {result}")
 
-            tool_results.append({
-                "type": "tool_result",
-                "tool_use_id": block.id,
-                "content": result,
-            })
+            tool_results.append(
+                {
+                    "type": "tool_result",
+                    "tool_use_id": block.id,
+                    "content": result,
+                }
+            )
 
         messages.append({"role": "user", "content": tool_results})
 
@@ -235,7 +258,9 @@ node-5 at (550,200), node-6 at (50,400), node-7 at (300,400).
 
 def main():
     parser = argparse.ArgumentParser(description="OpenClaw IR Agent")
-    parser.add_argument("--session", default=str(uuid.uuid4()), help="Session ID (UUID)")
+    parser.add_argument(
+        "--session", default=str(uuid.uuid4()), help="Session ID (UUID)"
+    )
     args = parser.parse_args()
 
     asyncio.run(run_agent(args.session))
