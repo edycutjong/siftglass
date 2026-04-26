@@ -21,7 +21,7 @@
 
 ## 📸 See it in Action
 
-> [![YouTube](https://img.shields.io/badge/YouTube-%23FF0000.svg?style=flat-square&logo=YouTube&logoColor=white)](https://youtu.be/fsi0KBf0MBk) **[Watch the full autonomous investigation](https://youtu.be/fsi0KBf0MBk)** — Complete kill chain reconstruction in under 2 minutes.
+> **[▶ Watch the full autonomous investigation](https://youtu.be/fsi0KBf0MBk)** — Complete kill chain reconstruction in under 2 minutes.
 
 | Timestamp | What's Happening |
 |-----------|------------------|
@@ -32,6 +32,11 @@
 | `01:03` | ⚡ **AI Self-Correction** — false positive detected and shattered in real-time |
 | `01:26` | 🔗 Full kill chain correlated (97% confidence) — attack graph complete |
 | `01:30` | 📋 7-step containment playbook auto-generated |
+
+<div align="center">
+  <img src="docs/screenshots/dashboard.png" alt="SIFTGlass SOC Dashboard — live attack graph with AI self-correction" width="800">
+  <p><em>SOC Dashboard: Real-time attack graph with confidence scores, live terminal, and AI reasoning banner</em></p>
+</div>
 
 ---
 
@@ -101,6 +106,9 @@ graph TD
 
 ## 🚀 Run it Locally (For Judges)
 
+> [!NOTE]
+> **For Judges:** The app includes a **hardcoded demo scenario** that runs automatically without any API keys. Simply run `pnpm dev` and visit `http://localhost:3000` — no Supabase or Anthropic key required to see the full investigation playback.
+
 ### Prerequisites
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (required by Supabase CLI)
@@ -129,9 +137,6 @@ npx supabase db reset   # applies SIFTGlass schema
 pnpm dev
 # → http://localhost:3000
 ```
-
-> [!NOTE]
-> **For Judges:** The app includes a **hardcoded demo scenario** that runs automatically without any API keys. Simply run `pnpm dev` and visit `http://localhost:3000` — no Supabase or Anthropic key required to see the full investigation playback.
 
 ### Run the Live Agent (Optional)
 
